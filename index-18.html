@@ -1,0 +1,1777 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Dice Jar</title>
+<meta name="description" content="Pull dice from the jar, roll them, and empty the jar. A Curious Pirate Games tool.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#191430; --card:#2b2350; --card-b:#241d45; --well:#1c1738; --line:#463b78;
+  --text:#f8f5ff; --muted:#c8bfea; --gold:#ffc94d; --coral:#ff6f7d; --mint:#58e6c6;
+  --r:18px;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  background:
+    radial-gradient(900px 500px at 15% -10%, rgba(255,201,77,.13), transparent 60%),
+    radial-gradient(900px 600px at 100% 0%, rgba(236,79,201,.14), transparent 60%),
+    var(--bg);
+  color:var(--text); font-family:'Nunito',system-ui,sans-serif; font-weight:600;
+  font-size:17px; line-height:1.5; min-height:100vh; -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,.fred{font-family:'Fredoka',system-ui,sans-serif;font-weight:600;letter-spacing:.2px}
+h2{font-size:24px;margin:0 0 10px} h3{font-size:19px;margin:22px 0 10px;color:var(--gold)}
+[hidden]{display:none!important}
+.wrap{max-width:1120px;margin:0 auto;padding:14px 16px 70px}
+.muted{color:var(--muted)}
+.hint{color:var(--muted);font-size:15px;margin:0 0 10px}
+
+/* header */
+header.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:4px 0 16px}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:50px;height:50px;border-radius:15px;display:grid;place-items:center;font-size:28px;
+  background:linear-gradient(145deg,#ffd76a,#ff9a2e);box-shadow:0 4px 0 #b9641a, 0 8px 20px rgba(0,0,0,.35);transform:rotate(-6deg)}
+.brand h1{margin:0;font-size:30px;line-height:1.05}
+.brand h1 span{color:var(--gold)}
+.sub{color:var(--muted);font-size:15px}
+.hdr-actions{display:flex;gap:8px;flex-wrap:wrap}
+
+/* buttons & inputs */
+.btn{font-family:'Fredoka',sans-serif;font-weight:600;font-size:17px;border:0;border-radius:14px;padding:11px 18px;cursor:pointer;
+  background:#3a3070;color:var(--text);box-shadow:0 4px 0 rgba(0,0,0,.35);transition:transform .08s,box-shadow .08s,filter .15s;
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:46px;-webkit-tap-highlight-color:transparent}
+.btn:hover{filter:brightness(1.08)}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,.35)}
+.btn.primary{background:linear-gradient(180deg,#ffd76a,#ffb22e);color:#3a2200;box-shadow:0 4px 0 #a8650f}
+.btn.coral{background:linear-gradient(180deg,#ff8f9b,#ff5d6e);color:#2c0409;box-shadow:0 4px 0 #a72636}
+.btn.ghost{background:transparent;border:2px solid var(--line);box-shadow:none}
+.btn.ghost:active{transform:translateY(1px)}
+.btn.sm{font-size:15px;padding:7px 12px;min-height:38px;border-radius:11px}
+.btn.big{width:100%;font-size:21px;padding:14px 18px;min-height:56px}
+.btn:disabled{opacity:.42;cursor:not-allowed;transform:none;filter:none}
+input[type=text],input[type=number],select{
+  background:var(--well);border:2px solid var(--line);color:var(--text);border-radius:12px;padding:8px 12px;
+  font:700 16px 'Nunito',sans-serif;min-height:44px;outline:none}
+input:focus,select:focus{border-color:var(--gold)}
+select{cursor:pointer;max-width:100%}
+input[type=number]{-moz-appearance:textfield}
+input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+
+.card{background:linear-gradient(180deg,var(--card),var(--card-b));border:1px solid var(--line);border-radius:var(--r);
+  padding:18px;box-shadow:0 12px 32px rgba(0,0,0,.28)}
+.stepper{display:inline-flex;align-items:center;background:var(--well);border:2px solid var(--line);border-radius:14px;overflow:hidden}
+.stepper button{width:44px;height:44px;border:0;background:transparent;color:var(--gold);font:700 24px 'Fredoka',sans-serif;cursor:pointer}
+.stepper button:active{background:rgba(255,255,255,.08)}
+.stepper input{width:54px;border:0;border-radius:0;text-align:center;background:transparent;padding:0;font-size:19px;min-height:40px}
+
+/* setup */
+.setup{max-width:640px;margin:0 auto}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:6px}
+.field span{color:var(--muted);font-size:15px}
+.dice-rows{display:grid;gap:8px}
+.drow{display:flex;align-items:center;gap:12px;background:var(--well);border:1px solid var(--line);border-radius:14px;padding:6px 8px 6px 6px}
+.drow canvas.ico{width:46px;height:46px;flex:none}
+.dname{flex:1;line-height:1.15}
+.dname b{font-family:'Fredoka';font-size:20px}
+.dname small{display:block;color:var(--muted);font-size:14px}
+.drow .stepper{background:#2b2350}
+.setup-total{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:12px}
+.setup-total .tot{font-family:'Fredoka';font-size:20px}
+.setup-total .tot b{color:var(--gold)}
+.warn{color:var(--coral);font-size:15px}
+.add-row{display:flex;gap:8px}
+.add-row input{flex:1;min-width:0}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 4px}
+.pchip{display:inline-flex;align-items:center;gap:6px;background:#3a3070;border-radius:999px;padding:5px 6px 5px 14px;font-weight:800}
+.pchip button{border:0;background:rgba(0,0,0,.25);color:var(--text);width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:14px}
+.start-wrap{margin-top:22px}
+
+/* game layout */
+.grid{display:grid;gap:18px;grid-template-columns:1fr}
+@media(min-width:920px){.grid{grid-template-columns:minmax(360px,440px) 1fr;align-items:start}.col-l{position:sticky;top:12px}}
+.col{display:grid;gap:18px;align-content:start}
+.jarcard{padding:12px 14px 16px}
+.jarbox{position:relative;margin:0 auto;max-width:420px}
+#jarCanvas{width:100%;aspect-ratio:420/520;display:block}
+#jarCanvas.shake{animation:shake .5s ease}
+@keyframes shake{0%,100%{transform:none}20%{transform:rotate(-1.6deg) translateX(-4px)}40%{transform:rotate(1.4deg) translateX(4px)}60%{transform:rotate(-1deg) translateX(-2px)}80%{transform:rotate(.6deg)}}
+.tag{position:absolute;left:82%;top:18.6%;transform:rotate(9deg);transform-origin:6px 6px;background:linear-gradient(180deg,#f6e3b8,#e9cf96);
+  color:#3d2a10;border-radius:6px 10px 10px 6px;padding:6px 10px 6px 18px;font-family:'Fredoka';line-height:1.05;text-align:center;
+  box-shadow:0 4px 10px rgba(0,0,0,.35);pointer-events:none;min-width:58px}
+.tag::before{content:"";position:absolute;left:5px;top:50%;width:7px;height:7px;margin-top:-3.5px;border-radius:50%;background:#2b2350;box-shadow:inset 0 0 0 1.5px #b08c4f}
+.tag b{display:block;font-size:22px;font-weight:700}
+.tag small{font-size:12px;font-weight:600}
+.empty-banner{position:absolute;left:50%;top:52%;transform:translate(-50%,-50%) rotate(-5deg);background:linear-gradient(180deg,#ffd76a,#ffb22e);
+  color:#3a2200;font-family:'Fredoka';font-weight:700;font-size:26px;padding:10px 20px;border-radius:16px;box-shadow:0 6px 0 #a8650f,0 14px 30px rgba(0,0,0,.4);white-space:nowrap;animation:wob 2.4s ease-in-out infinite}
+@keyframes wob{50%{transform:translate(-50%,-50%) rotate(4deg) scale(1.05)}}
+.progress{margin:6px 4px 14px}
+.bar{height:12px;background:var(--well);border-radius:99px;overflow:hidden;border:1px solid var(--line)}
+.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#ff5a64,#ff9a2e,#ffd23f,#37d67a,#29b8f0,#8a6bff,#ec4fc9);border-radius:99px;transition:width .6s ease}
+.progtxt{display:flex;justify-content:space-between;font-size:15px;color:var(--muted);margin-top:6px}
+.progtxt b{color:var(--text)}
+.pull-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.pull-row .lbl{font-family:'Fredoka';font-size:19px}
+.pull-row select{flex:1;min-width:130px}
+.pull-note{text-align:center;color:var(--muted);font-size:15px;margin-top:10px;min-height:1em}
+
+/* tray */
+.tray-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.tray-head h2{margin:0}
+.tray-assign{display:flex;align-items:center;gap:8px;margin:12px 0;flex-wrap:wrap}
+.tray-assign span{font-family:'Fredoka';font-size:17px}
+.tray-assign select{flex:1;min-width:150px}
+.dice{display:grid;grid-template-columns:repeat(auto-fill,minmax(138px,1fr));gap:12px}
+.die-card{background:var(--well);border:1px solid var(--line);border-radius:16px;padding:8px 8px 10px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:4px}
+.die-card.pop{animation:popIn .5s cubic-bezier(.2,1.6,.4,1) both}
+@keyframes popIn{from{opacity:0;transform:translateY(-30px) scale(.5)}to{opacity:1;transform:none}}
+.tdie{width:104px;height:104px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.tdie.ready{animation:bob 1.6s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-5px)}}
+.tdie.landed{animation:land .35s ease}
+@keyframes land{40%{transform:scale(1.15)}}
+.res{font-family:'Fredoka';font-size:18px;line-height:1.2}
+.res b{font-size:26px;color:var(--gold)}
+.die-card select{width:100%;font-size:15px;min-height:40px;padding:6px 8px}
+.tray-sum{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 4px}
+.sumchip{background:#3a3070;border-radius:12px;padding:6px 12px;font-size:16px}
+.sumchip b{color:var(--gold);font-size:18px}
+.tray-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.tray-actions .btn{flex:1 1 auto}
+.empty{color:var(--muted);text-align:center;padding:24px 8px;font-size:17px}
+
+/* tabs */
+.tabs{display:flex;gap:6px;background:var(--well);padding:5px;border-radius:15px;margin-bottom:14px}
+.tab{flex:1;border:0;background:transparent;color:var(--muted);font:600 17px 'Fredoka',sans-serif;padding:9px 6px;border-radius:11px;cursor:pointer}
+.tab.on{background:#3a3070;color:var(--gold);box-shadow:0 2px 0 rgba(0,0,0,.3)}
+.log-item{background:var(--well);border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:10px}
+.log-head{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.log-head b{font-family:'Fredoka';font-size:19px}
+.log-head .muted{flex:1;font-size:14px}
+.chiprow{display:flex;flex-wrap:wrap;gap:6px}
+.dchip{display:inline-flex;align-items:center;gap:6px;background:#2f2758;border-radius:10px;padding:4px 10px;font-size:15px}
+.dchip i{width:11px;height:11px;border-radius:3px;transform:rotate(45deg);flex:none}
+.dchip b{color:var(--gold);font-size:17px}
+.log-sum{margin-top:8px;font-size:15px;color:var(--muted)}
+.log-sum b{color:var(--text)}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:14px}
+.tile{background:var(--well);border:1px solid var(--line);border-radius:14px;padding:10px 12px}
+.tile small{color:var(--muted);font-size:14px;display:block}
+.tile b{font-family:'Fredoka';font-size:26px;color:var(--gold);line-height:1.1}
+.prank{display:flex;align-items:center;gap:12px;background:var(--well);border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:10px}
+.medal{font-size:30px;width:40px;text-align:center;flex:none}
+.pinfo{flex:1;min-width:0}
+.pname{font-family:'Fredoka';font-size:20px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pmeta{color:var(--muted);font-size:14px}
+.ptypes{display:flex;flex-wrap:wrap;gap:5px;margin-top:5px}
+.ptypes span{font-size:13px;background:#2f2758;border-radius:8px;padding:1px 7px}
+.ptotal{text-align:right;flex:none}
+.ptotal b{display:block;font-family:'Fredoka';font-size:30px;color:var(--gold);line-height:1}
+.ptotal small{color:var(--muted);font-size:13px}
+.jrow{display:flex;align-items:center;gap:12px;padding:8px 4px;border-bottom:1px solid rgba(255,255,255,.06)}
+.jrow:last-child{border-bottom:0}
+.jrow canvas{width:40px;height:40px;flex:none}
+.jrow .nm{width:56px;font-family:'Fredoka';font-size:19px}
+.jrow .bar{flex:1}
+.jrow .ct{width:74px;text-align:right;font-size:15px;color:var(--muted)}
+.jrow .ct b{color:var(--text);font-size:18px}
+.section-actions{display:flex;justify-content:flex-end;margin-bottom:12px}
+
+/* modal / toast */
+.modal{position:fixed;inset:0;background:rgba(10,6,25,.72);backdrop-filter:blur(4px);display:grid;place-items:center;padding:16px;z-index:40}
+.modal-card{width:100%;max-width:520px;max-height:90vh;overflow:auto;background:linear-gradient(180deg,var(--card),var(--card-b));border:1px solid var(--line);border-radius:20px;padding:20px;box-shadow:0 20px 60px rgba(0,0,0,.5);animation:popIn .3s ease both}
+.modal-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+.modal-actions .btn{flex:1 1 auto}
+.share-pre{background:#120e24;border:1px solid var(--line);border-radius:12px;padding:12px;font:600 14.5px/1.45 ui-monospace,Menlo,Consolas,monospace;white-space:pre-wrap;word-break:break-word;max-height:46vh;overflow:auto;margin:0}
+.prow{display:flex;gap:8px;margin-bottom:8px}
+.prow input{flex:1;min-width:0}
+.prow button{width:46px;flex:none}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(30px);background:#fff;color:#241d45;font-family:'Fredoka';font-weight:600;font-size:17px;padding:12px 20px;border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.4);opacity:0;pointer-events:none;transition:.25s;z-index:60;max-width:90vw;text-align:center}
+.toast.on{opacity:1;transform:translateX(-50%)}
+#confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;display:none;z-index:55}
+footer{text-align:center;color:var(--muted);font-size:13px;margin-top:30px;opacity:.75}
+canvas.shake{animation:shake .5s ease}
+.tab{font-size:16px;padding:9px 2px}
+.donebox{max-width:330px;margin:-4px auto 6px}
+.donebox canvas{width:100%;aspect-ratio:420/520;display:block}
+.pgroup{background:var(--well);border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:10px}
+.pgroup-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:8px}
+.pgroup-head b{font-family:'Fredoka';font-size:19px}
+.pgroup-head span{color:var(--muted);font-size:14px}
+.pend-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.pend{display:flex;align-items:center;gap:8px;background:#2f2758;border:2px solid transparent;border-radius:12px;padding:8px 10px;color:var(--text);
+  font:700 15px 'Nunito',sans-serif;cursor:pointer;text-align:left;min-height:48px;-webkit-tap-highlight-color:transparent}
+.pend:hover{border-color:var(--mint)}
+.pend i{width:12px;height:12px;border-radius:3px;transform:rotate(45deg);flex:none}
+.pend .pr{flex:1}
+.pend .pr b{color:var(--gold);font-size:18px}
+.pend .ok{background:var(--mint);color:#06372c;border-radius:9px;padding:3px 8px;font-family:'Fredoka';font-size:14px;white-space:nowrap}
+details.donelist{margin-top:12px}
+details.donelist summary{cursor:pointer;font-family:'Fredoka';font-size:17px;color:var(--mint);padding:6px 0}
+.dchip.done{opacity:.75}
+.dchip button{border:0;background:rgba(0,0,0,.3);color:var(--text);border-radius:7px;cursor:pointer;font-size:13px;padding:2px 7px;margin-left:2px}
+.code-box{background:#120e24;border:1px solid var(--line);border-radius:12px;padding:12px;font:600 13px/1.4 ui-monospace,Menlo,Consolas,monospace;word-break:break-all;max-height:22vh;overflow:auto;user-select:all}
+textarea.code-in{width:100%;min-height:90px;background:var(--well);border:2px solid var(--line);color:var(--text);border-radius:12px;padding:10px;font:600 13px ui-monospace,Menlo,Consolas,monospace;resize:vertical;outline:none}
+textarea.code-in:focus{border-color:var(--gold)}
+.modal hr{border:0;border-top:1px solid var(--line);margin:18px 0}
+.gifbox{display:grid;place-items:center;min-height:120px;background:#120e24;border-radius:12px;overflow:hidden}
+.gifbox img{max-width:100%;max-height:52vh;display:block}
+.spin{width:38px;height:38px;border:4px solid var(--line);border-top-color:var(--gold);border-radius:50%;animation:sp 0.8s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.pull-note.warn-note{color:var(--gold)}
+.section-actions{gap:8px;flex-wrap:wrap}
+.tab{position:relative}
+.tbadge{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 6px;margin-left:5px;border-radius:99px;background:var(--coral);color:#2c0409;font:700 12px 'Nunito',sans-serif;vertical-align:2px}
+.check-list{display:grid;gap:8px;margin-top:4px}
+.chk{display:flex;align-items:center;gap:10px;background:var(--well);border:2px solid var(--line);border-radius:12px;padding:10px 12px;cursor:pointer;font-size:16px}
+.chk:has(input:checked){border-color:var(--mint)}
+.chk input{width:22px;height:22px;accent-color:#58e6c6;flex:none;margin:0}
+.chk i{width:12px;height:12px;border-radius:3px;transform:rotate(45deg);flex:none}
+.chk span{flex:1}
+.chk b{color:var(--gold);font-size:18px}
+.chk small{color:var(--muted);font-size:13px}
+.spooky-list{display:grid;gap:10px;margin-bottom:10px}
+.spooky-card{background:linear-gradient(180deg,#2a1c45,#221639);border:1px solid #6b3fa0;border-radius:16px;padding:10px;box-shadow:inset 0 0 24px rgba(255,138,31,.08)}
+.sp-head{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.sp-head canvas{width:46px;height:46px;flex:none}
+.sp-head input{flex:1;min-width:0;font-family:'Fredoka';font-size:18px}
+.sp-faces{width:100%;background:var(--well);border:2px solid var(--line);color:var(--text);border-radius:12px;padding:10px;font:600 15px/1.5 'Nunito',sans-serif;resize:vertical;outline:none}
+.sp-faces:focus{border-color:#ff8a1f}
+.sp-foot{display:flex;align-items:center;gap:10px;margin-top:8px;flex-wrap:wrap}
+.sp-foot .sp-count{flex:1;color:var(--muted);font-size:14px;min-width:120px}
+.sp-foot .sp-copies{color:var(--muted);font-size:14px}
+.sp-foot .stepper{background:#2b2350}
+.res b.sp,.log-item b.sp,.pend b.sp,.chk b.sp,.dchip b.sp{color:#ff8a1f;font-size:15px}
+.res b.sp{display:block;font-family:'Nunito';font-weight:800;line-height:1.25;margin-top:2px}
+.pend .pr b.sp{display:block}
+.res b.gh,.log-item b.gh,.pend b.gh,.chk b.gh,.dchip b.gh{color:#d9d2ff;font-size:15px}
+.res b.gh{display:block;font-family:'Nunito';font-weight:800;line-height:1.25;margin-top:2px}
+.die-card.haunt{border-color:#b9a8ff;box-shadow:0 0 18px rgba(185,168,255,.35)}
+.ghost-row{border-color:#8f7fd6;background:linear-gradient(90deg,rgba(236,232,247,.08),transparent)}
+.halloween{background:radial-gradient(900px 500px at 15% -10%, rgba(255,122,26,.18), transparent 60%),radial-gradient(900px 600px at 100% 0%, rgba(140,60,220,.2), transparent 60%),var(--bg)}
+.halloween .logo{background:linear-gradient(145deg,#ffb04a,#ff6a00);box-shadow:0 4px 0 #9a3c00,0 8px 20px rgba(0,0,0,.35)}
+.halloween .brand h1 span{color:#ff8a1f}
+.ji{width:1.15em;height:1.15em;vertical-align:-.2em;flex:none}
+.gif-tip{color:var(--muted);font-size:14px;text-align:center;margin:10px 0 0}
+.restore-link{display:block;margin:14px auto 0;background:none;border:0;color:var(--muted);font:700 15px 'Nunito',sans-serif;text-decoration:underline;cursor:pointer}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <div class="logo" aria-hidden="true">🎲</div>
+      <div>
+        <h1>The Dice <span>Jar</span></h1>
+        <div class="sub" id="subTitle">Empty the jar, one roll at a time</div>
+      </div>
+    </div>
+    <div class="hdr-actions" id="hdrActions" hidden>
+      <button class="btn sm ghost" id="btnPlayers">👥 Players</button>
+      <button class="btn sm ghost" id="btnSnap">📸 Snapshot</button>
+      <button class="btn sm ghost" id="btnSave">💾 Save code</button>
+      <button class="btn sm ghost" id="btnNew">↺ New game</button>
+    </div>
+  </header>
+
+  <!-- SETUP -->
+  <section id="setup" hidden>
+    <div class="card setup">
+      <h2>Fill your jar</h2>
+      <label class="field"><span>Game name (optional)</span>
+        <input type="text" id="gameName" maxlength="40" placeholder="e.g. Friday Night Dice Jar"></label>
+
+      <h3>What goes in the jar?</h3>
+      <div id="diceRows" class="dice-rows"></div>
+      <div class="setup-total">
+        <div class="tot" id="setupTotal"></div>
+        <div style="display:flex;gap:8px">
+          <button class="btn sm ghost" id="btnSurprise">✨ Surprise me</button>
+          <button class="btn sm ghost" id="btnClear">Clear</button>
+        </div>
+      </div>
+      <div class="warn" id="setupWarn"></div>
+
+      <h3>🎃 Spooky dice</h3>
+      <p class="hint">Design your own dice. Write one face per line (2 to 20 faces), and add as many designs as you like. Spooky dice don't add to anyone's edge total, so write the full instruction on each face.</p>
+      <div id="spookyList" class="spooky-list"></div>
+      <button class="btn ghost" id="btnAddSpooky" style="width:100%">🎃 Add a spooky die</button>
+      <div class="warn" id="spookyWarn"></div>
+
+      <h3>Who's playing?</h3>
+      <p class="hint">Add names now or later. You can assign dice to anyone during the game.</p>
+      <div class="add-row">
+        <input type="text" id="setupPlayerInput" maxlength="24" placeholder="Player name">
+        <button class="btn" id="setupAddPlayer">Add</button>
+      </div>
+      <div id="setupPlayers" class="chips"></div>
+
+      <div class="start-wrap"><button class="btn primary big" id="btnStart">Fill the jar →</button></div>
+      <button class="restore-link" id="btnLegacy" hidden>📦 Bring over the game from another Dice Jar on this site</button>
+      <button class="restore-link" id="btnRestoreSetup">💾 Got a save code? Restore a game</button>
+    </div>
+  </section>
+
+  <!-- GAME -->
+  <section id="game" hidden>
+    <div class="grid">
+      <div class="col col-l">
+        <div class="card jarcard">
+          <div class="jarbox">
+            <canvas id="jarCanvas" aria-label="A glass jar full of dice"></canvas>
+            <div class="tag" id="jarTag"></div>
+            <div class="empty-banner" id="emptyBanner" hidden>🎉 Jar emptied!</div>
+          </div>
+          <div class="progress">
+            <div class="bar"><i id="progBar"></i></div>
+            <div class="progtxt" id="progTxt"></div>
+          </div>
+          <div class="pull-row">
+            <span class="lbl">Pull</span>
+            <div class="stepper" id="pullStepper">
+              <button data-d="-1" aria-label="Fewer dice">−</button>
+              <input id="pullCount" type="number" inputmode="numeric" min="1" value="1" aria-label="Number of dice to pull">
+              <button data-d="1" aria-label="More dice">+</button>
+            </div>
+            <span class="lbl">for</span>
+            <select id="pullFor" aria-label="Assign pulled dice to"></select>
+          </div>
+          <button class="btn primary big" id="btnPull"><svg class="ji" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="2.5" width="12" height="3.5" rx="1.2" fill="#c98a2b"/><path d="M5.5 7.5h13a1 1 0 0 1 1 1V19a3 3 0 0 1-3 3h-9a3 3 0 0 1-3-3V8.5a1 1 0 0 1 1-1z" fill="#cfe8ff" stroke="#3a2200" stroke-width="1.4"/><rect x="8" y="14" width="3.6" height="3.6" rx=".8" fill="#ff5a64"/><rect x="12.6" y="12.2" width="3.6" height="3.6" rx=".8" fill="#8a6bff" transform="rotate(14 14.4 14)"/><rect x="10" y="17.2" width="3.4" height="3.4" rx=".8" fill="#2fcf74"/><path d="M8 9.5v6" stroke="#fff" stroke-width="1.3" stroke-linecap="round" opacity=".8"/></svg> Pull from the jar</button>
+          <div class="pull-note" id="pullNote"></div>
+        </div>
+      </div>
+      <div class="col">
+        <div class="card" id="tray"></div>
+        <div class="card">
+          <div class="tabs" role="tablist">
+            <button class="tab" data-tab="log">📜 Log</button>
+            <button class="tab" data-tab="stats">🏆 Stats</button>
+            <button class="tab" data-tab="jar"><svg class="ji" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="2.5" width="12" height="3.5" rx="1.2" fill="#c98a2b"/><path d="M5.5 7.5h13a1 1 0 0 1 1 1V19a3 3 0 0 1-3 3h-9a3 3 0 0 1-3-3V8.5a1 1 0 0 1 1-1z" fill="#cfe8ff" stroke="#8fb6dc" stroke-width="1.2"/><rect x="8" y="14" width="3.6" height="3.6" rx=".8" fill="#ff5a64"/><rect x="12.6" y="12.2" width="3.6" height="3.6" rx=".8" fill="#8a6bff" transform="rotate(14 14.4 14)"/><rect x="10" y="17.2" width="3.4" height="3.4" rx=".8" fill="#2fcf74"/><path d="M8 9.5v6" stroke="#fff" stroke-width="1.3" stroke-linecap="round" opacity=".8"/></svg> Jar</button>
+            <button class="tab" data-tab="done">✅ Done<span class="tbadge" id="doneBadge" hidden></span></button>
+          </div>
+          <div id="donePanel" hidden>
+            <div class="jarbox donebox">
+              <canvas id="doneCanvas" aria-label="The completed jar"></canvas>
+              <div class="tag" id="doneTag"></div>
+            </div>
+          </div>
+          <div id="tabBody"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <footer>The Dice Jar · Curious Pirate Games · progress saves on this device</footer>
+</div>
+
+<div class="modal" id="modal" hidden><div class="modal-card" id="modalCard" role="dialog" aria-modal="true"></div></div>
+<div class="toast" id="toast"></div>
+<canvas id="confetti"></canvas>
+
+<script>
+(() => {
+'use strict';
+
+/* ================= constants ================= */
+/* each copy of the Dice Jar on the site keeps its own game, based on its folder (e.g. /dicejar/ vs /ghostjar/) */
+const LEGACY_KEY = 'cpg-dicejar-v1';
+const STORE_KEY = LEGACY_KEY + '@' + location.pathname.replace(/[^\/]*$/, '');
+const MAX_TOTAL = 400;
+const DIV = '━━━━━━━━━━━━━━━━━━━━━━';
+const TYPES = [
+  {t:'d4',   s:4,   c:'#ff5a64', size:.88, ink:'#fff'},
+  {t:'d6',   s:6,   c:'#ff9a2e', size:.86, ink:'#fff'},
+  {t:'d8',   s:8,   c:'#2fcf74', size:.94, ink:'#fff'},
+  {t:'d10',  s:10,  c:'#29b0ea', size:.96, ink:'#fff'},
+  {t:'d12',  s:12,  c:'#8a6bff', size:1.0, ink:'#fff'},
+  {t:'d20',  s:20,  c:'#e84bc6', size:1.06,ink:'#fff'},
+  {t:'d100', s:100, c:'#ffd23f', size:1.16,ink:'#4a3300'}
+];
+const TYPE = Object.fromEntries(TYPES.map(x => [x.t, x]));
+TYPE.spooky = {t:'spooky', s:6, c:'#3a2560', ui:'#ff8a1f', size:1.12, ink:'#ff8a1f'};
+const chipC = t => TYPE[t].ui || TYPE[t].c;
+TYPE.ghost = {t:'ghost', s:1, c:'#ece8f7', ui:'#efeaff', size:1.1, ink:'#2b2350'};
+const ALLT = [...TYPES, TYPE.spooky, TYPE.ghost];
+const GHOST_NAME = "Ghost's Revenge";
+const isGhost = d => d && d.type==='ghost';
+const returnsToJar = d => !!(d.h || (isGhost(d) && d.gh && d.gh.m==='r'));     // haunted dice and restless ghosts go back in the jar
+const inDoneJar = d => !!(d.done && !d.st && !returnsToJar(d));
+const SPOOKY_FACES = ['👻 Boo! +5 edges', '🎃 Treat! Skip your next 3 edges', '🦇 Double your next roll', '💀 13 edges, no breaks', '🕸️ Pick someone to do 5 edges', '🧙 Host picks your number (1–20)'];
+const isSpooky = d => d && d.type==='spooky';
+const sDef = d => (state.spooky||[]).find(x => x.id===d.sk) || {name:'Spooky die', faces:['👻']};
+const sides = d => isSpooky(d) ? Math.max(1, sDef(d).faces.length) : isGhost(d) ? 1 : TYPE[d.type].s;
+const val = d => { if (d.result==null || isSpooky(d)) return 0; const v = isGhost(d) ? ((d.gh && (d.gh.m==='r'||d.gh.m==='w')) ? d.gh.n : 0) : d.result; return v * (d.x2 ? 2 : 1); };   // what counts towards edges
+const baseName = d => isSpooky(d) ? sDef(d).name : isGhost(d) ? GHOST_NAME : d.type;
+const dname = d => (d.h ? '👻 Haunted ' : '') + baseName(d);
+const ghostText = g => !g ? '?' : g.m==='s' ? `Stole a ${g.sn} from the Done jar!` : g.m==='r' ? `Restless! ${g.n} edges` : g.m==='w' ? `Whispers… ${g.n} edges` : 'Possessed! Next pull counts double';
+const rtext = d => d.result==null ? '?' : isSpooky(d) ? (sDef(d).faces[d.result-1] ?? '?') : isGhost(d) ? ghostText(d.gh) : String(d.result) + (d.x2 ? ' ×2' : '');
+const dhtml = (d, sep=' ') => `${esc(dname(d))}${sep}<b class="${isSpooky(d)?'sp':isGhost(d)?'gh':''}">${esc(rtext(d))}</b>`;
+const parseFaces = t => String(t).split(/\r?\n/).map(x => x.trim().slice(0,200)).filter(Boolean).slice(0,20);
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
+
+function rnd(n){ // fair integer 0..n-1
+  if (window.crypto && crypto.getRandomValues){
+    const a = new Uint32Array(1), lim = Math.floor(0x100000000 / n) * n; let x;
+    do { crypto.getRandomValues(a); x = a[0]; } while (x >= lim);
+    return x % n;
+  }
+  return Math.floor(Math.random() * n);
+}
+function shuffle(a){ for (let i=a.length-1;i>0;i--){ const j=rnd(i+1); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+
+/* ================= state ================= */
+function defaults(){
+  return { v:1, phase:'setup', title:'',
+    counts:{d4:3,d6:6,d8:4,d10:4,d12:3,d20:5,d100:2,ghost:0}, spooky:[], possessed:[],
+    players:[], initial:[], jar:[], pulls:[], celebrated:false, celebratedDone:false, seq:1,
+    ui:{pullFor:'', pullCount:1, tab:'log'} };
+}
+function load(key=STORE_KEY){
+  try{
+    const raw = localStorage.getItem(key);
+    if (!raw) return defaults();
+    const s = JSON.parse(raw), d = defaults();
+    const out = Object.assign(d, s);
+    out.counts = Object.assign(defaults().counts, s.counts || {});
+    out.ui = Object.assign(defaults().ui, s.ui || {});
+    ['players','initial','jar','pulls','spooky','possessed'].forEach(k => { if (!Array.isArray(out[k])) out[k] = []; });
+    return out;
+  }catch(e){ return defaults(); }
+}
+let state = load();
+function save(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(state)); }catch(e){} }
+const uid = p => p + (state.seq++) + Math.random().toString(36).slice(2,6);
+const title = () => state.title.trim() || 'Dice Jar';
+const playerName = id => { const p = state.players.find(x => x.id === id); return p ? p.name : 'Unassigned'; };
+const lastPull = () => state.pulls[state.pulls.length - 1] || null;
+const pullDone = p => p.dice.every(d => d.result != null);
+
+/* ================= dice drawing ================= */
+const P = (n,r,off,sx=1) => Array.from({length:n}, (_,i) => { const a=(off+i*360/n)*Math.PI/180; return [Math.cos(a)*r*sx, Math.sin(a)*r]; });
+const SH = {};
+(() => {
+  { const O = P(3,1.14,-90).map(([x,y]) => [x, y+.24]), C=[0,.2];
+    SH.d4 = {outer:O, facets:[[C,O[0],O[1]],[C,O[1],O[2]],[C,O[2],O[0]]], lx:0, ly:.5, ls:.44}; }
+  { const a=.86, b=.58, o=[[-a,-a],[a,-a],[a,a],[-a,a]], i=[[-b,-b],[b,-b],[b,b],[-b,b]];
+    SH.d6 = {outer:o, facets:[i,[o[0],o[1],i[1],i[0]],[o[1],o[2],i[2],i[1]],[o[2],o[3],i[3],i[2]],[o[3],o[0],i[0],i[3]]], lx:0, ly:0, ls:.66}; }
+  { const O = P(6,1.06,-90,.9);
+    SH.d8 = {outer:O, facets:[[O[0],O[2],O[4]],[O[0],O[1],O[2]],[O[2],O[3],O[4]],[O[4],O[5],O[0]]], lx:0, ly:.06, ls:.5}; }
+  { const T=[0,-1.06],R=[.96,.05],B=[0,1],L=[-.96,.05],p1=[.47,.22],p2=[0,.56],p3=[-.47,.22];
+    const f=[[T,p1,p2,p3],[T,R,p1],[R,B,p2,p1],[L,p3,p2,B],[T,p3,L]];
+    SH.d10 = {outer:[T,R,B,L], facets:f, lx:0, ly:-.04, ls:.46};
+    SH.d100 = {outer:[T,R,B,L], facets:f, lx:0, ly:-.04, ls:.42}; }
+  { const O=P(10,1.03,-90), I=P(5,.55,-90), f=[I];
+    for (let k=0;k<5;k++) f.push([I[k],O[2*k],O[2*k+1],O[(2*k+2)%10],I[(k+1)%5]]);
+    SH.d12 = {outer:O, facets:f, lx:0, ly:.03, ls:.46}; }
+  { const O=P(6,1.06,-90), I=P(3,.57,-90);
+    SH.d20 = {outer:O, facets:[I,[I[0],I[1],O[1]],[I[1],I[2],O[3]],[I[2],I[0],O[5]],[I[0],O[5],O[0]],[I[0],O[0],O[1]],
+      [I[1],O[1],O[2]],[I[1],O[2],O[3]],[I[2],O[3],O[4]],[I[2],O[4],O[5]]], lx:0, ly:.05, ls:.42}; }
+  // precompute centroids
+  SH.spooky = SH.d12; SH.ghost = SH.d20;
+  for (const k in SH) SH[k].cents = SH[k].facets.map(f => { let x=0,y=0; f.forEach(p=>{x+=p[0];y+=p[1];}); return [x/f.length,y/f.length]; });
+})();
+
+const shadeCache = new Map();
+function shade(h, f){
+  f = Math.round(f*50)/50;
+  const k = h + f; let v = shadeCache.get(k); if (v) return v;
+  const n = parseInt(h.slice(1),16); let r=n>>16&255, g=n>>8&255, b=n&255;
+  if (f >= 1){ const t=Math.min(1,f-1); r+=(255-r)*t; g+=(255-g)*t; b+=(255-b)*t; } else { r*=f; g*=f; b*=f; }
+  v = `rgb(${r|0},${g|0},${b|0})`; shadeCache.set(k,v); return v;
+}
+function path(ctx, pts, r){ ctx.beginPath(); pts.forEach((p,i) => i ? ctx.lineTo(p[0]*r,p[1]*r) : ctx.moveTo(p[0]*r,p[1]*r)); ctx.closePath(); }
+
+function drawDie(ctx, type, x, y, r, ang, label, opt = {}){
+  const T = TYPE[type], S = SH[type];
+  ctx.save();
+  if (opt.alpha != null) ctx.globalAlpha = opt.alpha;
+  ctx.translate(x, y); ctx.rotate(ang);
+  // world light from top-left, expressed in die space
+  const ca = Math.cos(-ang), sa = Math.sin(-ang), Lx=-.5, Ly=-.86;
+  const lx = ca*Lx - sa*Ly, ly = sa*Lx + ca*Ly;
+  ctx.lineJoin = 'round';
+  ctx.lineWidth = Math.max(.6, r*.05);
+  for (let i=0;i<S.facets.length;i++){
+    const c = S.cents[i];
+    const fb = clamp(1.04 + .62*(c[0]*lx + c[1]*ly), .52, 1.5);
+    path(ctx, S.facets[i], r);
+    ctx.fillStyle = shade(T.c, fb); ctx.fill();
+    ctx.strokeStyle = shade(T.c, 1.3); ctx.stroke();
+  }
+  path(ctx, S.outer, r);
+  ctx.lineWidth = Math.max(.8, r*.075); ctx.strokeStyle = shade(T.c, .4); ctx.stroke();
+  // gloss
+  if (r > 7){
+    const gx = (ca*-.32 - sa*-.42)*r, gy = (sa*-.32 + ca*-.42)*r;
+    ctx.beginPath(); ctx.ellipse(gx, gy, r*.2, r*.11, -ang-.6, 0, Math.PI*2);
+    ctx.fillStyle = 'rgba(255,255,255,.3)'; ctx.fill();
+  }
+  if (type === 'spooky' && r >= 5){
+    ctx.translate(S.lx*r, S.ly*r); ctx.rotate(0);
+    const k = r*.5;
+    ctx.shadowColor = '#ffb347'; ctx.shadowBlur = r*.35; ctx.fillStyle = T.ink;
+    ctx.beginPath(); ctx.moveTo(-.78*k,-.02*k); ctx.lineTo(-.14*k,-.02*k); ctx.lineTo(-.46*k,-.6*k); ctx.closePath();
+    ctx.moveTo(.78*k,-.02*k); ctx.lineTo(.14*k,-.02*k); ctx.lineTo(.46*k,-.6*k); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(-.88*k,.22*k); ctx.quadraticCurveTo(0,1.05*k,.88*k,.22*k);
+    [[.56,.4],[.36,.24],[.12,.44],[-.12,.24],[-.36,.44],[-.56,.24]].forEach(([a,b]) => ctx.lineTo(a*k,b*k));
+    ctx.closePath(); ctx.fill(); ctx.shadowBlur = 0;
+  } else if (type === 'ghost' && r >= 5){
+    ctx.translate(S.lx*r, S.ly*r - r*.05);
+    const k = r*.5; ctx.fillStyle = T.ink;
+    ctx.beginPath(); ctx.ellipse(-.38*k, -.22*k, .17*k, .27*k, 0, 0, Math.PI*2); ctx.ellipse(.38*k, -.22*k, .17*k, .27*k, 0, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(0, .42*k, .2*k, .26*k, 0, 0, Math.PI*2); ctx.fill();
+  } else if (label != null && r >= 8){
+    const txt = String(label);
+    ctx.translate(S.lx*r, S.ly*r);
+    const fs = r * S.ls * (opt.ls || 1) * (txt.length > 2 ? .78 : 1);
+    ctx.font = `700 ${fs}px Fredoka, Nunito, sans-serif`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.lineWidth = fs * .2;
+    ctx.strokeStyle = T.ink === '#fff' ? 'rgba(25,10,45,.6)' : 'rgba(255,255,255,.6)';
+    ctx.strokeText(txt, 0, fs*.06);
+    ctx.fillStyle = T.ink; ctx.fillText(txt, 0, fs*.06);
+  }
+  ctx.restore();
+}
+const jarLabel = t => t === 'd100' ? '%' : (t === 'spooky' || t === 'ghost') ? '' : String(TYPE[t].s);
+
+function drawIcon(cv, type){
+  const dpr = Math.min(window.devicePixelRatio || 1, 3), w = cv.clientWidth || 44;
+  cv.width = cv.height = Math.round(w*dpr);
+  const ctx = cv.getContext('2d'); ctx.clearRect(0,0,cv.width,cv.height);
+  drawDie(ctx, type, cv.width/2, cv.height/2, cv.width*.4, -.12, jarLabel(type));
+}
+
+/* ================= the jar ================= */
+function makeJar(getDice){
+  const W=420, H=520, J={L:100, R:320, top:96, floor:452};
+  const cx=210, rx=121, ry=18, rimY=64, bodyTop=84, by=466, lipX=rx+5;
+  let cv, ctx, scale=1, bodies=[], leaving=[], running=false, still=0, baseR=14, raf=0;
+
+  function init(c){ cv=c; ctx=c.getContext('2d'); if (window.ResizeObserver) new ResizeObserver(resize).observe(cv); window.addEventListener('resize', resize); }
+  function resize(){
+    if (!cv || !cv.clientWidth) return;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2.5), w = cv.clientWidth;
+    cv.width = Math.round(w*dpr); cv.height = Math.round(w*H/W*dpr); scale = cv.width / W; draw();
+  }
+  function computeR(){
+    let s=0; for (const d of state.initial) s += TYPE[d.type].size ** 2;
+    if (!s) return 18;
+    const area = (J.R-J.L)*(J.floor-J.top);
+    return clamp(Math.sqrt(area*.82*.66/(Math.PI*s*.81)), 4.5, 27);
+  }
+  function mk(d, x, y){ const r = baseR*TYPE[d.type].size; return {id:d.id, type:d.type, x, y, px:x, py:y, r, cr:r*.9, ang:Math.random()*Math.PI*2}; }
+  function spawn(list, startY){
+    const out=[]; let y=startY, x=J.L, rowMax=0;
+    for (const d of list){
+      const r = baseR*TYPE[d.type].size*.9;
+      if (x + 2*r > J.R){ x = J.L; y -= rowMax*2 + 1; rowMax = 0; }
+      out.push(mk(d, x + r + Math.random()*1.5, y - r - Math.random()*3));
+      x += 2*r + 1; rowMax = Math.max(rowMax, r);
+    }
+    return out;
+  }
+  function build(pour){
+    cancelAnimationFrame(raf); running=false; leaving=[];
+    baseR = computeR();
+    bodies = spawn(shuffle(getDice().slice()), pour ? J.top - 40 : J.floor);
+    if (!pour) for (let i=0;i<450;i++) step();
+    draw(); wake();
+  }
+  function walls(b){
+    const r=b.cr;
+    if (b.x < J.L+r) b.x = J.L+r;
+    if (b.x > J.R-r) b.x = J.R-r;
+    if (b.y > J.floor-r){ b.y = J.floor-r; b.px += (b.x-b.px)*.25; }
+  }
+  function collide(){
+    const cs = baseR*2.6, n = bodies.length, grid = new Map();
+    const key = (gx,gy) => gx*8192 + gy + 4096;
+    for (let i=0;i<n;i++){
+      const b=bodies[i], k=key(Math.floor(b.x/cs), Math.floor(b.y/cs));
+      let a=grid.get(k); if(!a){a=[];grid.set(k,a);} a.push(i);
+    }
+    for (let i=0;i<n;i++){
+      const b=bodies[i], gx=Math.floor(b.x/cs), gy=Math.floor(b.y/cs);
+      for (let ox=-1;ox<=1;ox++) for (let oy=-1;oy<=1;oy++){
+        const a=grid.get(key(gx+ox,gy+oy)); if(!a) continue;
+        for (const j of a){
+          if (j<=i) continue;
+          const c=bodies[j]; let dx=c.x-b.x, dy=c.y-b.y; const min=b.cr+c.cr, d2=dx*dx+dy*dy;
+          if (d2 >= min*min) continue;
+          let d=Math.sqrt(d2); if (d<1e-4){ dx=Math.random()-.5; dy=-1; d=Math.hypot(dx,dy); }
+          const o=(min-d)/d*.5; b.x-=dx*o; b.y-=dy*o; c.x+=dx*o; c.y+=dy*o;
+        }
+      }
+    }
+  }
+  function step(){
+    for (const b of bodies){
+      const vx=(b.x-b.px)*.985, vy=(b.y-b.py)*.985;
+      b.px=b.x; b.py=b.y; b.x+=vx; b.y+=vy+.32;
+    }
+    for (let it=0;it<4;it++){ collide(); for (const b of bodies) walls(b); }
+    let m=0;
+    for (const b of bodies){
+      const dx=b.x-b.px; b.ang += dx*.05*(14/b.r);
+      const v=Math.abs(dx)+Math.abs(b.y-b.py); if (v>m) m=v;
+    }
+    return m;
+  }
+  function tick(){
+    let m=0; for (let s=0;s<2;s++) m=Math.max(m, step());
+    const now=performance.now();
+    leaving = leaving.filter(l => now - l.t0 < l.delay + 950);
+    draw(now);
+    still = m < .05 ? still+1 : 0;
+    if (still < 40 || leaving.length) raf = requestAnimationFrame(tick); else running=false;
+  }
+  function wake(){ still=0; if (!running){ running=true; raf=requestAnimationFrame(tick); } }
+  function removeDice(ids){
+    const now=performance.now();
+    ids.forEach((id,i) => {
+      const k=bodies.findIndex(b => b.id===id); if (k<0) return;
+      const b=bodies.splice(k,1)[0];
+      leaving.push({b, t0:now, delay:i*120, sx:b.x, sy:b.y, a0:b.ang});
+    });
+    cv.classList.remove('shake'); void cv.offsetWidth; cv.classList.add('shake');
+    wake();
+  }
+  function addDice(list){ bodies.push(...spawn(list, J.top-40)); wake(); }
+
+  /* ---- jar artwork ---- */
+  function bodyPath(){
+    ctx.beginPath(); ctx.moveTo(cx-rx, bodyTop); ctx.lineTo(cx-rx, by);
+    ctx.ellipse(cx, by, rx, ry, 0, Math.PI, 0, true);
+    ctx.lineTo(cx+rx, bodyTop);
+    ctx.ellipse(cx, bodyTop, rx, ry, 0, 0, Math.PI, true);
+    ctx.closePath();
+  }
+  function shelf(){
+    // table surface + front edge
+    const g=ctx.createLinearGradient(0,440,0,492); g.addColorStop(0,'#94643a'); g.addColorStop(1,'#73492a');
+    ctx.fillStyle=g; ctx.beginPath(); ctx.moveTo(24,440); ctx.lineTo(396,440); ctx.lineTo(414,492); ctx.lineTo(6,492); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle='rgba(0,0,0,.12)'; ctx.lineWidth=1.2;
+    for (let i=0;i<5;i++){ const y=448+i*9; ctx.beginPath(); ctx.moveTo(20-i*3,y); ctx.bezierCurveTo(140,y-3+i,280,y+4-i,400+i*3,y); ctx.stroke(); }
+    const f=ctx.createLinearGradient(0,492,0,516); f.addColorStop(0,'#5b371c'); f.addColorStop(1,'#3e2512');
+    ctx.fillStyle=f; ctx.beginPath(); ctx.moveTo(6,492); ctx.lineTo(414,492); ctx.lineTo(414,510); ctx.quadraticCurveTo(414,516,408,516); ctx.lineTo(12,516); ctx.quadraticCurveTo(6,516,6,510); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle='rgba(255,220,170,.35)'; ctx.lineWidth=1.5; ctx.beginPath(); ctx.moveTo(6,492.5); ctx.lineTo(414,492.5); ctx.stroke();
+    // jar shadow
+    ctx.save(); ctx.translate(cx+10, by+10); ctx.scale(1,.17);
+    const s=ctx.createRadialGradient(0,0,10,0,0,rx*1.3); s.addColorStop(0,'rgba(0,0,0,.55)'); s.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=s; ctx.beginPath(); ctx.arc(0,0,rx*1.3,0,Math.PI*2); ctx.fill(); ctx.restore();
+  }
+  function back(){
+    bodyPath();
+    const g=ctx.createLinearGradient(cx-rx,0,cx+rx,0);
+    g.addColorStop(0,'rgba(170,215,255,.22)'); g.addColorStop(.18,'rgba(170,215,255,.07)');
+    g.addColorStop(.82,'rgba(170,215,255,.07)'); g.addColorStop(1,'rgba(170,215,255,.22)');
+    ctx.fillStyle=g; ctx.fill();
+    // inner floor
+    ctx.beginPath(); ctx.ellipse(cx, J.floor+3, rx-8, ry-5, 0, 0, Math.PI*2); ctx.fillStyle='rgba(200,230,255,.08)'; ctx.fill();
+    // back of the opening
+    ctx.beginPath(); ctx.ellipse(cx, rimY, lipX, ry, 0, Math.PI, 0); ctx.strokeStyle='rgba(220,240,255,.4)'; ctx.lineWidth=2; ctx.stroke();
+    ctx.beginPath(); ctx.ellipse(cx, bodyTop+2, rx, ry, 0, Math.PI, 0); ctx.strokeStyle='rgba(220,240,255,.14)'; ctx.lineWidth=1.5; ctx.stroke();
+  }
+  function streak(x, y, w, h, a){
+    const g=ctx.createLinearGradient(0,y,0,y+h);
+    g.addColorStop(0,'rgba(255,255,255,0)'); g.addColorStop(.12,`rgba(255,255,255,${a})`);
+    g.addColorStop(.75,`rgba(255,255,255,${a*.8})`); g.addColorStop(1,'rgba(255,255,255,0)');
+    ctx.fillStyle=g; ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(x,y,w,h,w/2); else ctx.rect(x,y,w,h);
+    ctx.fill();
+  }
+  function front(){
+    bodyPath();
+    const g=ctx.createLinearGradient(cx-rx,0,cx+rx,0);
+    g.addColorStop(0,'rgba(255,255,255,.34)'); g.addColorStop(.05,'rgba(255,255,255,.08)');
+    g.addColorStop(.13,'rgba(255,255,255,0)'); g.addColorStop(.17,'rgba(255,255,255,.17)');
+    g.addColorStop(.24,'rgba(255,255,255,.02)'); g.addColorStop(.76,'rgba(255,255,255,0)');
+    g.addColorStop(.89,'rgba(255,255,255,.07)'); g.addColorStop(.96,'rgba(255,255,255,.2)'); g.addColorStop(1,'rgba(255,255,255,.38)');
+    ctx.fillStyle=g; ctx.fill();
+    streak(cx-rx+28, bodyTop+34, 10, by-bodyTop-80, .34);
+    streak(cx-rx+44, bodyTop+70, 4, by-bodyTop-170, .22);
+    streak(cx+rx-24, bodyTop+56, 5, by-bodyTop-130, .2);
+    // outline
+    ctx.strokeStyle='rgba(225,242,255,.62)'; ctx.lineWidth=2.2;
+    ctx.beginPath(); ctx.moveTo(cx-rx, bodyTop); ctx.lineTo(cx-rx, by); ctx.ellipse(cx, by, rx, ry, 0, Math.PI, 0, true); ctx.lineTo(cx+rx, bodyTop); ctx.stroke();
+    // thick glass base
+    ctx.beginPath(); ctx.ellipse(cx, by-5, rx-3, ry-1, 0, Math.PI, 0, true); ctx.lineWidth=7; ctx.strokeStyle='rgba(210,236,255,.2)'; ctx.stroke();
+    ctx.beginPath(); ctx.ellipse(cx, by+1, rx-14, ry-5, 0, Math.PI*.15, Math.PI*.55); ctx.lineWidth=2; ctx.strokeStyle='rgba(255,255,255,.45)'; ctx.stroke();
+    // lip / neck band
+    const top=rimY, bot=bodyTop+2;
+    ctx.beginPath(); ctx.moveTo(cx-lipX, top); ctx.lineTo(cx-lipX, bot);
+    ctx.ellipse(cx, bot, lipX, ry, 0, Math.PI, 0, true); ctx.lineTo(cx+lipX, top);
+    ctx.ellipse(cx, top, lipX, ry, 0, 0, Math.PI, false); ctx.closePath();
+    const lg=ctx.createLinearGradient(cx-lipX,0,cx+lipX,0);
+    lg.addColorStop(0,'rgba(235,248,255,.5)'); lg.addColorStop(.2,'rgba(235,248,255,.18)'); lg.addColorStop(.5,'rgba(235,248,255,.1)');
+    lg.addColorStop(.8,'rgba(235,248,255,.2)'); lg.addColorStop(1,'rgba(235,248,255,.55)');
+    ctx.fillStyle=lg; ctx.fill(); ctx.strokeStyle='rgba(240,250,255,.7)'; ctx.lineWidth=2; ctx.stroke();
+    ctx.lineWidth=1.4; ctx.strokeStyle='rgba(255,255,255,.3)';
+    [7,12].forEach(o => { ctx.beginPath(); ctx.ellipse(cx, top+o, lipX, ry, 0, .12, Math.PI-.12); ctx.stroke(); });
+    // twine + tag string
+    ctx.lineWidth=3; ctx.strokeStyle='#caa46b'; ctx.beginPath(); ctx.ellipse(cx, bodyTop+8, rx+1, ry, 0, .05, Math.PI-.05); ctx.stroke();
+    ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(cx+rx-6, bodyTop+20); ctx.quadraticCurveTo(cx+rx+10, bodyTop+34, 351, 100); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx+rx-10, bodyTop+22); ctx.quadraticCurveTo(cx+rx-4, bodyTop+44, cx+rx-16, bodyTop+52); ctx.stroke();
+  }
+  function draw(now = performance.now()){
+    if (!ctx || !cv.width) return;
+    ctx.setTransform(scale,0,0,scale,0,0); ctx.clearRect(0,0,W,H);
+    shelf(); back();
+    for (const b of bodies) drawDie(ctx, b.type, b.x, b.y, b.r, b.ang, jarLabel(b.type));
+    for (const l of leaving){
+      const p = clamp((now - l.t0 - l.delay)/900, 0, 1), e = p<.5 ? 2*p*p : 1-Math.pow(-2*p+2,2)/2;
+      const x = l.sx + (cx - l.sx)*e*.5, y = l.sy + (rimY - 110 - l.sy)*e;
+      drawDie(ctx, l.b.type, x, y, l.b.r*(1+.35*e), l.a0 + e*5, jarLabel(l.b.type), {alpha: p<.65 ? 1 : 1-(p-.65)/.35});
+    }
+    front();
+  }
+  function initFixed(c){ cv=c; ctx=c.getContext('2d'); scale=c.width/W; }
+  function stop(){ cancelAnimationFrame(raf); running=false; }
+  return {init, initFixed, stop, resize, build, removeDice, addDice, draw};
+}
+const Jar = makeJar(() => state.jar);
+const DoneJar = makeJar(() => doneDice());
+
+/* ================= UI helpers ================= */
+let toastT=0;
+function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('on'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('on'), 2400); }
+function openModal(html){ $('#modalCard').innerHTML=html; $('#modal').hidden=false; }
+function closeModal(){ $('#modal').hidden=true; $('#modalCard').innerHTML=''; }
+$('#modal').addEventListener('click', e => { if (e.target.id==='modal' || e.target.closest('[data-close]')) closeModal(); });
+document.addEventListener('keydown', e => { if (e.key==='Escape' && !$('#modal').hidden) closeModal(); });
+function confirmModal(head, msg, ok, cb){
+  openModal(`<h2>${head}</h2><p class="muted" style="margin:0">${msg}</p><div class="modal-actions"><button class="btn coral" id="mOk">${ok}</button><button class="btn ghost" data-close>Cancel</button></div>`);
+  $('#mOk').onclick = () => { closeModal(); cb(); };
+}
+async function copyText(t){
+  try{ await navigator.clipboard.writeText(t); return true; }
+  catch(e){
+    const ta=document.createElement('textarea'); ta.value=t; ta.style.cssText='position:fixed;opacity:0;top:0'; document.body.appendChild(ta);
+    ta.focus(); ta.select(); let ok=false; try{ ok=document.execCommand('copy'); }catch(_){} ta.remove(); return ok;
+  }
+}
+function shareModal(head, text){
+  openModal(`<h2>${head}</h2><p class="hint">Copy this and paste it straight into Discord.</p><pre class="share-pre" id="mPre">${esc(text)}</pre>
+    <div class="modal-actions"><button class="btn primary" id="mCopy">📋 Copy</button>${navigator.share?'<button class="btn" id="mShare">↗ Share</button>':''}<button class="btn ghost" data-close>Close</button></div>`);
+  $('#mCopy').onclick = async () => { const ok = await copyText(text); toast(ok ? '✅ Copied! Paste it into Discord.' : 'Select the text and copy it manually.'); if (ok) closeModal(); };
+  if (navigator.share) $('#mShare').onclick = () => navigator.share({text}).catch(()=>{});
+}
+function playerOpts(sel){
+  return `<option value="">— Unassigned —</option>` + state.players.map(p => `<option value="${p.id}" ${p.id===sel?'selected':''}>${esc(p.name)}</option>`).join('');
+}
+function fmtTime(ts){ const d=new Date(ts); return d.toLocaleDateString(undefined,{weekday:'short',day:'numeric',month:'short'})+' · '+d.toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'}); }
+function groupPull(p){
+  const m=new Map();
+  for (const d of p.dice){ const k=d.player||''; if(!m.has(k)) m.set(k,{id:d.player||null,name:playerName(d.player),dice:[],total:0}); const g=m.get(k); g.dice.push(d); g.total+=val(d); }
+  return [...m.values()];
+}
+
+/* ================= setup screen ================= */
+function setupTotal(){ return TYPES.reduce((a,T) => a + (state.counts[T.t]||0), 0) + (state.counts.ghost||0) + state.spooky.reduce((a,x) => a + (x.count||0), 0); }
+function legacyGame(){
+  try{ const s=JSON.parse(localStorage.getItem(LEGACY_KEY)); return s && s.phase==='game' && Array.isArray(s.initial) && s.initial.length ? s : null; }catch(e){ return null; }
+}
+$('#btnLegacy').onclick = () => {
+  const s=legacyGame(); if (!s) return;
+  confirmModal('Bring over that game?', `“${esc(s.title||'Dice Jar')}” (${s.pulls.length} pulls) will be copied here. The other page keeps its own copy, so only carry on playing on one of them.`, 'Bring it over', () => {
+    const ui=state.ui; state=load(LEGACY_KEY); state.ui=Object.assign(state.ui||{}, {tab:ui.tab||'log'}); save(); showGame(false); toast('📦 Game brought over');
+  });
+};
+function renderSetup(){
+  $('#btnLegacy').hidden = !legacyGame();
+  $('#gameName').value = state.title;
+  $('#diceRows').innerHTML = TYPES.map(T => `
+    <div class="drow"><canvas class="ico" data-t="${T.t}"></canvas>
+      <div class="dname"><b>${T.t}</b><small>rolls 1–${T.s}</small></div>
+      <div class="stepper" data-t="${T.t}">
+        <button data-d="-1" aria-label="Fewer ${T.t}">−</button>
+        <input type="number" inputmode="numeric" min="0" max="${MAX_TOTAL}" value="${state.counts[T.t]||0}" aria-label="${T.t} count">
+        <button data-d="1" aria-label="More ${T.t}">+</button>
+      </div></div>`).join('') + `
+    <div class="drow ghost-row"><canvas class="ico" data-t="ghost"></canvas>
+      <div class="dname"><b>👻 ${GHOST_NAME}</b><small>steals a die from the Done jar</small></div>
+      <div class="stepper" data-t="ghost">
+        <button data-d="-1" aria-label="Fewer ghost dice">−</button>
+        <input type="number" inputmode="numeric" min="0" max="50" value="${state.counts.ghost||0}" aria-label="Ghost's Revenge count">
+        <button data-d="1" aria-label="More ghost dice">+</button>
+      </div></div>`;
+  document.querySelectorAll('#diceRows canvas.ico').forEach(c => drawIcon(c, c.dataset.t));
+  renderSpooky(); updateSetupTotal(); renderSetupPlayers();
+}
+function renderSpooky(){
+  $('#spookyList').innerHTML = state.spooky.map(x => `
+    <div class="spooky-card" data-sid="${x.id}">
+      <div class="sp-head"><canvas class="ico" data-t="spooky"></canvas>
+        <input type="text" class="sp-name" maxlength="24" value="${esc(x.name)}" placeholder="Name, e.g. Pumpkin Die" aria-label="Spooky die name">
+        <button class="btn sm ghost" data-sdel aria-label="Remove this spooky die">✕</button></div>
+      <textarea class="sp-faces" rows="6" spellcheck="true" aria-label="Faces, one per line">${esc(x.faces.join('\n'))}</textarea>
+      <div class="sp-foot"><small class="sp-count"></small><span class="sp-copies">Copies in the jar</span>
+        <div class="stepper"><button data-sc="-1" aria-label="Fewer copies">−</button><input type="number" class="sp-n" inputmode="numeric" min="0" max="50" value="${x.count||0}" aria-label="Copies"><button data-sc="1" aria-label="More copies">+</button></div></div>
+    </div>`).join('');
+  document.querySelectorAll('#spookyList canvas.ico').forEach(c => drawIcon(c, 'spooky'));
+  updateSpookyCounts();
+}
+function updateSpookyCounts(){
+  let bad=false;
+  document.querySelectorAll('.spooky-card').forEach(card => {
+    const x=state.spooky.find(z => z.id===card.dataset.sid); if (!x) return;
+    const n=x.faces.length, el=card.querySelector('.sp-count');
+    el.textContent = n<2 ? `${n} face${n===1?'':'s'}, needs at least 2` : `${n} faces${n===20?' (max)':''}`;
+    el.classList.toggle('warn', n<2 && x.count>0); if (n<2 && x.count>0) bad=true;
+  });
+  $('#spookyWarn').textContent = bad ? 'Each spooky die needs at least 2 faces.' : '';
+  return bad;
+}
+const spookyOf = el => state.spooky.find(z => z.id===el.closest('.spooky-card').dataset.sid);
+$('#btnAddSpooky').onclick = () => {
+  const n = state.spooky.length;
+  state.spooky.push({id:uid('s'), name: n ? `Spooky Die ${n+1}` : 'Spooky Die', faces:SPOOKY_FACES.slice(), count:1});
+  save(); renderSpooky(); updateSetupTotal();
+  const last=document.querySelector('.spooky-card:last-child .sp-name'); if (last){ last.focus(); last.select(); }
+};
+$('#spookyList').addEventListener('input', e => {
+  const x=spookyOf(e.target); if (!x) return;
+  if (e.target.classList.contains('sp-name')) x.name = e.target.value.slice(0,24);
+  else if (e.target.classList.contains('sp-faces')) x.faces = parseFaces(e.target.value);
+  else if (e.target.classList.contains('sp-n')) x.count = clamp(parseInt(e.target.value,10)||0, 0, 50);
+  save(); updateSetupTotal();
+});
+$('#spookyList').addEventListener('change', e => {
+  const x=spookyOf(e.target); if (!x) return;
+  if (e.target.classList.contains('sp-name') && !x.name.trim()){ x.name='Spooky Die'; e.target.value=x.name; save(); }
+});
+$('#spookyList').addEventListener('click', e => {
+  const b=e.target.closest('[data-sc],[data-sdel]'); if (!b) return;
+  const x=spookyOf(b); if (!x) return;
+  if (b.hasAttribute('data-sdel')){ state.spooky=state.spooky.filter(z => z!==x); save(); renderSpooky(); updateSetupTotal(); return; }
+  x.count = clamp((x.count||0) + +b.dataset.sc, 0, 50); b.parentElement.querySelector('.sp-n').value = x.count;
+  save(); updateSetupTotal();
+});
+function updateSetupTotal(){
+  const t=setupTotal();
+  $('#setupTotal').innerHTML = `<b>${t}</b> ${t===1?'die':'dice'} in the jar`;
+  $('#setupWarn').textContent = t > MAX_TOTAL ? `That's a lot of dice! The jar holds up to ${MAX_TOTAL}.` : (t===0 ? 'Add at least one die.' : '');
+  const sp = state.spooky.reduce((a,x) => a + (x.count||0), 0), gh = state.counts.ghost||0, extra=[sp?`${sp} spooky`:'', gh?`${gh} ghost`:''].filter(Boolean).join(', ');
+  if (extra) $('#setupTotal').innerHTML += ` <span class="muted" style="font-size:15px">(incl. ${extra})</span>`;
+  $('#btnStart').disabled = t===0 || t > MAX_TOTAL || updateSpookyCounts();
+}
+function renderSetupPlayers(){
+  $('#setupPlayers').innerHTML = state.players.length ? state.players.map(p => `<span class="pchip">${esc(p.name)}<button data-del="${p.id}" aria-label="Remove ${esc(p.name)}">✕</button></span>`).join('') : '<span class="muted" style="font-size:15px">No players yet</span>';
+}
+$('#diceRows').addEventListener('click', e => {
+  const b=e.target.closest('button[data-d]'); if(!b) return;
+  const st=b.closest('.stepper'), t=st.dataset.t, inp=st.querySelector('input');
+  state.counts[t] = clamp((state.counts[t]||0) + +b.dataset.d, 0, MAX_TOTAL); inp.value = state.counts[t];
+  updateSetupTotal(); save();
+});
+$('#diceRows').addEventListener('input', e => {
+  const st=e.target.closest('.stepper'); if(!st) return;
+  state.counts[st.dataset.t] = clamp(parseInt(e.target.value,10)||0, 0, MAX_TOTAL); updateSetupTotal(); save();
+});
+$('#btnSurprise').onclick = () => { TYPES.forEach(T => state.counts[T.t] = rnd(8)); if(!setupTotal()) state.counts.d6 = 5; renderSetup(); save(); };
+$('#btnClear').onclick = () => { TYPES.forEach(T => state.counts[T.t] = 0); renderSetup(); save(); };
+$('#gameName').addEventListener('input', e => { state.title = e.target.value; save(); });
+function addPlayer(name){
+  name = name.trim().slice(0,24); if(!name) return false;
+  if (state.players.some(p => p.name.toLowerCase()===name.toLowerCase())){ toast('That name is already in.'); return false; }
+  state.players.push({id:uid('p'), name}); save(); return true;
+}
+$('#setupAddPlayer').onclick = () => { const i=$('#setupPlayerInput'); if(addPlayer(i.value)){ i.value=''; renderSetupPlayers(); } i.focus(); };
+$('#setupPlayerInput').addEventListener('keydown', e => { if(e.key==='Enter') $('#setupAddPlayer').click(); });
+$('#setupPlayers').addEventListener('click', e => { const b=e.target.closest('[data-del]'); if(!b) return; state.players=state.players.filter(p=>p.id!==b.dataset.del); save(); renderSetupPlayers(); });
+$('#btnStart').onclick = () => {
+  const all=[];
+  TYPES.forEach(T => { for (let i=0;i<(state.counts[T.t]||0);i++) all.push({id:uid('x'), type:T.t}); });
+  state.spooky.forEach(x => { if (x.faces.length >= 2) for (let i=0;i<(x.count||0);i++) all.push({id:uid('x'), type:'spooky', sk:x.id}); });
+  for (let i=0;i<(state.counts.ghost||0);i++) all.push({id:uid('x'), type:'ghost'});
+  state.initial = all; state.jar = shuffle(all.slice()); state.pulls=[]; state.possessed=[]; state.celebrated=false; state.celebratedDone=false; state.phase='game';
+  state.ui.pullCount = 1; save(); showGame(true);
+};
+
+/* ================= game screen ================= */
+const rolling = new Set();
+function showSetup(){
+  $('#game').hidden=true; $('#setup').hidden=false; $('#hdrActions').hidden=true; document.body.classList.remove('halloween'); $('.logo').textContent='🎲';
+  $('#subTitle').textContent='Empty the jar, one roll at a time'; renderSetup();
+}
+function showGame(pour){
+  $('#setup').hidden=true; $('#game').hidden=false; $('#hdrActions').hidden=false;
+  doneLive=false; renderGame(true);
+  requestAnimationFrame(() => { Jar.resize(); Jar.build(pour); });
+}
+function spookyTheme(){
+  const on = state.phase==='game' && state.initial.some(d => isSpooky(d) || isGhost(d));
+  document.body.classList.toggle('halloween', on); $('.logo').textContent = on ? '🎃' : '🎲';
+}
+function renderGame(full){
+  spookyTheme();
+  $('#subTitle').textContent = title();
+  renderJarInfo(); renderPullControls(); if (full) renderTray(false); renderTab();
+}
+function renderJarInfo(){
+  const total=state.initial.length, left=state.jar.length, pulled=total-left;
+  $('#jarTag').innerHTML = `<b>${left}</b><small>of ${total} left</small>`;
+  $('#progBar').style.width = (total ? pulled/total*100 : 0) + '%';
+  $('#progTxt').innerHTML = `<span><b>${pulled}</b> pulled</span><span><b>${total ? Math.round(pulled/total*100) : 0}%</b> emptied</span>`;
+  $('#emptyBanner').hidden = !trulyEmpty();
+}
+function renderPullControls(){
+  const left=state.jar.length, lp=lastPull(), waiting = lp && !pullDone(lp);
+  const sel=$('#pullFor'); sel.innerHTML = playerOpts(state.ui.pullFor);
+  if (!state.players.some(p=>p.id===state.ui.pullFor)) { state.ui.pullFor=''; sel.value=''; }
+  state.ui.pullCount = clamp(state.ui.pullCount||1, 1, Math.max(1,left));
+  $('#pullCount').value = state.ui.pullCount;
+  $('#btnPull').disabled = !left || waiting;
+  let note = !left ? 'Every die is out. The jar is empty! 🎉' : waiting ? 'Roll the dice in your hand before pulling more.' : `${left} ${left===1?'die':'dice'} waiting in the jar`, warn=false;
+  if (left && !waiting && state.ui.pullFor){
+    const pend = allRolled().filter(x => !x.d.done && x.d.player===state.ui.pullFor);
+    if (state.possessed.includes(state.ui.pullFor)){ warn=true; note = `😈 ${playerName(state.ui.pullFor)} is possessed: this pull counts double!`; }
+    if (pend.length){ warn=true; note = `⚠️ ${playerName(state.ui.pullFor)} still has ${pend.length} ${pend.length===1?'die':'dice'} to finish (${pend.reduce((a,x)=>a+val(x.d),0)} tasks)` + (state.possessed.includes(state.ui.pullFor) ? ' · 😈 next pull counts double' : ''); }
+  }
+  $('#pullNote').textContent = note; $('#pullNote').classList.toggle('warn-note', warn);
+}
+function allRolled(){
+  const out=[], lp=lastPull();
+  state.pulls.forEach((p,pi) => p.dice.forEach((d,i) => {
+    if (d.result==null || (p===lp && rolling.has(i))) return;
+    out.push({p, pi, i, d});
+  }));
+  return out;
+}
+function doneDice(){ return allRolled().filter(x=>inDoneJar(x.d)).sort((a,b)=>(a.d.doneAt||0)-(b.d.doneAt||0)).map(x=>({id:x.d.id, type:x.d.type})); }
+$('#pullStepper').addEventListener('click', e => {
+  const b=e.target.closest('button[data-d]'); if(!b) return;
+  state.ui.pullCount = clamp((state.ui.pullCount||1) + +b.dataset.d, 1, Math.max(1,state.jar.length));
+  $('#pullCount').value = state.ui.pullCount; save();
+});
+$('#pullCount').addEventListener('change', e => { state.ui.pullCount = clamp(parseInt(e.target.value,10)||1, 1, Math.max(1,state.jar.length)); e.target.value=state.ui.pullCount; save(); });
+$('#pullFor').addEventListener('change', e => { state.ui.pullFor = e.target.value; save(); renderPullControls(); });
+
+$('#btnPull').onclick = () => {
+  const lp=lastPull(); if (lp && !pullDone(lp)) return;
+  const who=state.ui.pullFor, pend = who ? allRolled().filter(x => !x.d.done && x.d.player===who) : [];
+  if (pend.length) return donePrompt(who, pend, doPull);
+  doPull();
+};
+/* the "have they finished?" check, shown at the natural moment: right before that player pulls again */
+function donePrompt(who, pend, then){
+  const name=esc(playerName(who)), tasks=pend.reduce((a,x)=>a+val(x.d),0);
+  openModal(`<h2>Before ${name} pulls again…</h2>
+    <p class="hint">${name} still has ${pend.length} ${pend.length===1?'die':'dice'} (${tasks} tasks) not marked done. Has ${name} finished ${pend.length===1?'it':'them'}? Untick any that aren't done yet.</p>
+    <div class="check-list">${pend.map(x => `<label class="chk"><input type="checkbox" checked data-k="${x.pi}:${x.i}"><i style="background:${chipC(x.d.type)}"></i><span>${(isSpooky(x.d)||isGhost(x.d)||x.d.h||x.d.x2) ? dhtml(x.d,' → ') : `${x.d.type} → <b>${x.d.result}</b> ${x.d.result===1?'task':'tasks'}`}</span><small>Pull #${x.p.n}</small></label>`).join('')}</div>
+    <div class="modal-actions"><button class="btn primary" id="mDonePull">✅ Mark done &amp; pull</button><button class="btn" id="mPullAnyway">Not done yet, pull anyway</button><button class="btn ghost" data-close>Cancel</button></div>`);
+  const boxes=[...document.querySelectorAll('.check-list input')];
+  const sync = () => { const n=boxes.filter(b=>b.checked).length; $('#mDonePull').textContent = n ? `✅ Mark ${n===pend.length && n>1 ? 'all '+n : n} done & pull` : 'Pull without marking'; };
+  boxes.forEach(b => b.addEventListener('change', sync)); sync();
+  $('#mDonePull').onclick = () => {
+    const ticked=boxes.filter(b=>b.checked).map(b => b.dataset.k.split(':').map(Number)), now=Date.now();
+    ticked.forEach(([pi,i]) => setDone(state.pulls[pi].dice[i], true));
+    save(); closeModal();
+    if (ticked.length) toast(`✅ ${ticked.length} ${ticked.length===1?'die':'dice'} into the done jar for ${playerName(who)}`);
+    then();
+  };
+  $('#mPullAnyway').onclick = () => { closeModal(); then(); };
+}
+/* marking done: haunted dice and restless ghosts climb back into the main jar; everything else drops into the done jar */
+function setDone(d, mark){
+  if (mark){
+    if (d.done) return true;
+    d.done=true; d.doneAt=Date.now();
+    if (returnsToJar(d)){ d.back=1; const b={id:d.id, type:d.type, ...(d.sk?{sk:d.sk}:{})}; state.jar.push(b); Jar.addDice([b]); state.celebrated=false; renderJarInfo(); }
+    else if (doneLive) DoneJar.addDice([{id:d.id, type:d.type}]);
+  } else {
+    if (d.back){
+      const k=state.jar.findIndex(x => x.id===d.id);
+      if (k<0){ toast('That die has already been pulled out again.'); return false; }
+      state.jar.splice(k,1); Jar.removeDice([d.id]); delete d.back; renderJarInfo();
+    } else if (doneLive) DoneJar.removeDice([d.id]);
+    d.done=false; delete d.doneAt; state.celebratedDone=false;
+  }
+  return true;
+}
+/* the ghost strikes: steal a random die from the done jar, or pick a fate if the done jar is empty */
+function resolveGhost(p, d){
+  const pool = allRolled().filter(x => inDoneJar(x.d) && !isGhost(x.d));
+  d.result = 1;
+  if (pool.length){
+    const x = pool[rnd(pool.length)];
+    x.d.st = 1;
+    d.gh = {m:'s', sid:x.d.id, sn:baseName(x.d)}; d.done = true; d.doneAt = Date.now();
+    p.dice.push({id:x.d.id, type:x.d.type, ...(x.d.sk?{sk:x.d.sk}:{}), result:null, player:d.player, h:1});
+    return {stolen:x.d};
+  }
+  const opts=['r','w']; if (d.player) opts.push('p');
+  const m = opts[rnd(opts.length)];
+  if (m==='r') d.gh = {m:'r', n:13};
+  else if (m==='w') d.gh = {m:'w', n:1+rnd(20)};
+  else { d.gh = {m:'p'}; d.done = true; d.doneAt = Date.now(); if (!state.possessed.includes(d.player)) state.possessed.push(d.player); }
+  return {};
+}
+function doPull(){
+  const lp=lastPull(); if (lp && !pullDone(lp)) return;
+  const n = clamp(state.ui.pullCount||1, 1, state.jar.length); if (!n) return;
+  const picked=[]; for (let i=0;i<n;i++) picked.push(state.jar.splice(rnd(state.jar.length),1)[0]);
+  const pull = {id:uid('u'), n:state.pulls.length+1, time:Date.now(),
+    dice: picked.map(d => ({id:d.id, type:d.type, ...(d.sk?{sk:d.sk}:{}), result:null, player:state.ui.pullFor||null}))};
+  const who = state.ui.pullFor;
+  if (who && state.possessed.includes(who)){ pull.dice.forEach(d => d.x2 = 1); state.possessed = state.possessed.filter(x => x!==who); setTimeout(() => toast(`😈 ${playerName(who)} is possessed: this pull counts double!`), 700); }
+  state.pulls.push(pull); save();
+  Jar.removeDice(picked.map(d=>d.id));
+  renderJarInfo(); renderPullControls(); renderTray(true); renderTab();
+}
+
+/* ---- tray (current hand) ---- */
+function restAngle(id){ let h=0; for (const c of id) h=(h*31 + c.charCodeAt(0))|0; return ((h%100)/100)*.4 - .2; }
+function paintTrayDie(cv, d, label, ang, dy=0){
+  const dpr=Math.min(window.devicePixelRatio||1, 3), w=cv.clientWidth||104;
+  if (cv.width !== Math.round(w*dpr)){ cv.width = cv.height = Math.round(w*dpr); }
+  const ctx=cv.getContext('2d'), W=cv.width; ctx.clearRect(0,0,W,W);
+  const lift=-dy;
+  ctx.save(); ctx.translate(W/2, W*.88); ctx.scale(1,.22);
+  ctx.beginPath(); ctx.arc(0,0,W*.3*(1-lift/(W*.6)),0,Math.PI*2); ctx.fillStyle=`rgba(0,0,0,${.4-lift/W})`; ctx.fill(); ctx.restore();
+  drawDie(ctx, d.type, W/2, W*.47 + dy*dpr, W*.36, ang, label, {ls:1.28});
+}
+function cardHTML(d, i, pop, delay){
+  return `<div class="die-card ${pop?'pop':''} ${d.h?'haunt':''}" style="animation-delay:${pop ? (delay ?? 350+i*120) : 0}ms">
+        <canvas class="tdie" data-i="${i}" role="button" aria-label="Roll ${esc(dname(d))}"></canvas>
+        <div class="res" id="res${i}"></div>
+        <select class="dsel" data-i="${i}" aria-label="Assign ${esc(dname(d))}">${playerOpts(d.player)}</select>
+      </div>`;
+}
+function renderTray(animateIn){
+  const p=lastPull(), el=$('#tray');
+  if (!p){ el.innerHTML = `<h2>Your hand</h2><p class="empty">Pick how many dice to pull, then reach into the jar. 🎲</p>`; return; }
+  const owners = new Set(p.dice.map(d=>d.player||'')), common = owners.size===1 ? [...owners][0] : '__mixed';
+  el.innerHTML = `
+    <div class="tray-head"><h2>Pull #${p.n}</h2><span class="muted" id="trayHint"></span></div>
+    <div class="tray-assign"><span>Give all to</span><select id="assignAll">${common==='__mixed'?'<option value="__mixed" selected>Mixed</option>':''}${playerOpts(common)}</select></div>
+    <div class="dice">${p.dice.map((d,i) => cardHTML(d,i,animateIn)).join('')}</div>
+    <div class="tray-sum" id="traySum"></div>
+    <div class="tray-actions" id="trayActions"></div>`;
+  document.querySelectorAll('#tray .tdie').forEach(cv => { const d=p.dice[+cv.dataset.i]; paintTrayDie(cv, d, d.result ?? '?', restAngle(d.id)); });
+  updateTrayMeta();
+}
+function updateTrayMeta(){
+  const p=lastPull(); if(!p || !$('#traySum')) return;
+  const done=pullDone(p);
+  p.dice.forEach((d,i) => {
+    const r=$('#res'+i); if (r) r.innerHTML = d.result!=null && !rolling.has(i) ? dhtml(d,' → ') : `${esc(dname(d))} <span class="muted">${rolling.has(i)?'rolling…':'tap to roll'}</span>`;
+    const cv=document.querySelector(`#tray .tdie[data-i="${i}"]`); if (cv) cv.classList.toggle('ready', d.result==null);
+  });
+  $('#trayHint').textContent = done ? 'All rolled ✓' : 'Tap a die to roll it';
+  const groups = groupPull(p).filter(g => g.dice.some(d=>d.result!=null && !rolling.has(p.dice.indexOf(d))));
+  $('#traySum').innerHTML = groups.map(g => {
+    const t = g.dice.reduce((a,d)=> a + (d.result!=null && !rolling.has(p.dice.indexOf(d)) ? val(d) : 0), 0);
+    return `<span class="sumchip">${esc(g.name)}: <b>${t}</b></span>`;
+  }).join('');
+  $('#trayActions').innerHTML = (done ? '' : `<button class="btn coral" id="btnRollAll">🎲 Roll ${p.dice.filter(d=>d.result==null).length>1?'all':'it'}</button>`)
+    + `<button class="btn" id="btnSharePull" ${done && !rolling.size ? '' : 'disabled'}>📋 Share this pull</button>`
+    + `<button class="btn" id="btnGifPull" ${done && !rolling.size ? '' : 'disabled'}>🎞️ Roll GIF</button>`
+    + `<button class="btn sm ghost" id="btnUndo" ${rolling.size ? 'disabled' : ''}>↶ Undo pull</button>`;
+}
+function rollDie(i){
+  const p=lastPull(), d=p && p.dice[i];
+  if (!d || d.result!=null || rolling.has(i)) return;
+  let ghostHit = null;
+  if (isGhost(d)) ghostHit = resolveGhost(p, d); else d.result = 1 + rnd(sides(d));
+  save();
+  if (ghostHit && ghostHit.stolen && doneLive){ DoneJar.removeDice([ghostHit.stolen.id]); }
+  if (isGhost(d) && d.done && doneLive) setTimeout(() => DoneJar.addDice([{id:d.id, type:d.type}]), 1200);
+  rolling.add(i); updateTrayMeta();
+  const cv=document.querySelector(`#tray .tdie[data-i="${i}"]`);
+  const T={s:sides(d)}, dur=1100, t0=performance.now(), end=restAngle(d.id);
+  const spin=(Math.random()<.5?-1:1)*(Math.PI*4 + Math.random()*Math.PI*2);
+  let shown=1+rnd(T.s), lastSw=0;
+  cv.classList.remove('ready');
+  const frame = now => {
+    const t=Math.min(1,(now-t0)/dur), e=1-Math.pow(1-t,3);
+    if (now-lastSw > 55 + t*140 && t < .9){ shown = 1 + Math.floor(Math.random()*T.s); lastSw = now; }
+    const hop = -Math.abs(Math.sin(t*Math.PI*3))*(1-t)*22;
+    if (cv.isConnected) paintTrayDie(cv, d, t>=1 ? d.result : shown, end - spin*(1-e), hop);
+    if (t<1) requestAnimationFrame(frame);
+    else {
+      rolling.delete(i);
+      cv.classList.add('landed'); setTimeout(()=>cv.classList.remove('landed'), 400);
+      updateTrayMeta(); renderTab(); renderPullControls(); checkEmpty();
+      if (isGhost(d)) afterGhost(p, d, i);
+    }
+  };
+  requestAnimationFrame(frame);
+}
+function afterGhost(p, d, i){
+  const g = d.gh || {};
+  if (g.m==='s'){
+    toast(`👻 The ghost stole a ${g.sn} from the Done jar!`);
+    // show a card for every haunted die that doesn't have one yet, then roll the stolen dice
+    const wrap = document.querySelector('#tray .dice');
+    p.dice.forEach((x,j) => {
+      if (!wrap || document.querySelector(`#tray .tdie[data-i="${j}"]`)) return;
+      wrap.insertAdjacentHTML('beforeend', cardHTML(x, j, true, 0));
+      paintTrayDie(document.querySelector(`#tray .tdie[data-i="${j}"]`), x, x.result ?? '?', restAngle(x.id));
+    });
+    updateTrayMeta();
+    p.dice.forEach((x,j) => { if (x.h && x.result==null && !rolling.has(j)) setTimeout(() => rollDie(j), 900); });
+  } else if (g.m==='r') toast("👻 The Done jar is empty… the ghost is restless. 13 edges, and it lurks back in the jar!");
+  else if (g.m==='w') toast(`👻 The ghost whispers… ${g.n} edges.`);
+  else if (g.m==='p') toast(`😈 Possessed! ${playerName(d.player)}'s next pull counts double.`);
+}
+$('#tray').addEventListener('click', e => {
+  const cv=e.target.closest('.tdie'); if (cv){ rollDie(+cv.dataset.i); return; }
+  if (e.target.closest('#btnRollAll')){
+    const p=lastPull(); let k=0;
+    p.dice.forEach((d,i) => { if (d.result==null && !rolling.has(i)) setTimeout(()=>rollDie(i), (k++)*170); });
+    return;
+  }
+  if (e.target.closest('#btnSharePull')){ shareModal('Share this pull', pullText(lastPull())); return; }
+  if (e.target.closest('#btnGifPull')){ gifModal(lastPull()); return; }
+  if (e.target.closest('#btnUndo')){
+    const p=lastPull(); if(!p || rolling.size) return;
+    if (p.dice.some(d=>isGhost(d) && d.result!=null)){ toast("👻 The ghost won't let go. A pull can't be undone once a ghost has struck."); return; }
+    if (p.dice.some(d=>d.done)){ toast('Some of these dice are already marked done. Undo those first.'); return; }
+    confirmModal('Undo this pull?', `The ${p.dice.length} ${p.dice.length===1?'die goes':'dice go'} back into the jar and Pull #${p.n} is removed from the log.`, 'Put them back', () => {
+      state.pulls.pop(); const back=p.dice.map(d=>({id:d.id,type:d.type,...(d.sk?{sk:d.sk}:{})})); state.jar.push(...back); state.celebrated=false;
+      if (p.dice.some(d=>d.x2) && p.dice[0].player && !state.possessed.includes(p.dice[0].player)) state.possessed.push(p.dice[0].player);
+      save();
+      Jar.addDice(back); renderGame(true); toast('↶ Dice returned to the jar');
+    });
+  }
+});
+$('#tray').addEventListener('change', e => {
+  const p=lastPull(); if(!p) return;
+  if (e.target.classList.contains('dsel')){ p.dice[+e.target.dataset.i].player = e.target.value || null; }
+  else if (e.target.id==='assignAll'){
+    if (e.target.value==='__mixed') return;
+    p.dice.forEach(d => d.player = e.target.value || null);
+    document.querySelectorAll('#tray .dsel').forEach(s => s.value = e.target.value);
+    const m=e.target.querySelector('option[value="__mixed"]'); if (m) m.remove();
+  } else return;
+  save(); updateTrayMeta(); renderTab();
+  if (e.target.classList.contains('dsel')){
+    const owners=new Set(p.dice.map(d=>d.player||'')), a=$('#assignAll');
+    if (owners.size===1){ const m=a.querySelector('option[value="__mixed"]'); if(m) m.remove(); a.value=[...owners][0]; }
+    else if (!a.querySelector('option[value="__mixed"]')){ a.insertAdjacentHTML('afterbegin','<option value="__mixed">Mixed</option>'); a.value='__mixed'; }
+    else a.value='__mixed';
+  }
+});
+function refreshSelects(){
+  const p=lastPull();
+  document.querySelectorAll('#tray .dsel').forEach(s => { s.innerHTML = playerOpts(p.dice[+s.dataset.i].player); });
+  const a=$('#assignAll');
+  if (a && p){ const owners=new Set(p.dice.map(d=>d.player||'')); const common = owners.size===1 ? [...owners][0] : '__mixed';
+    a.innerHTML = (common==='__mixed'?'<option value="__mixed" selected>Mixed</option>':'') + playerOpts(common); }
+  updateTrayMeta();
+}
+
+/* ---- tabs ---- */
+function computeStats(){
+  const blank = (id,name) => ({id,name,total:0,dice:0,pulls:new Set(),high:0,types:{},doneDice:0,doneTotal:0});
+  const m=new Map(), un=blank(null,'Unassigned');
+  state.players.forEach(p => m.set(p.id, blank(p.id,p.name)));
+  let rolledTotal=0, rolledCount=0;
+  for (const p of state.pulls) for (let i=0;i<p.dice.length;i++){
+    const d=p.dice[i]; if (d.result==null || (p===lastPull() && rolling.has(i))) continue;
+    const s=(d.player && m.get(d.player)) || un;
+    s.total+=val(d); s.dice++; s.pulls.add(p.id); if (!isSpooky(d) && !isGhost(d)) s.high=Math.max(s.high,val(d)); s.types[d.type]=(s.types[d.type]||0)+1;
+    if (d.done){ s.doneDice++; s.doneTotal+=val(d); }
+    rolledTotal+=val(d); if (!isSpooky(d) && !isGhost(d)) rolledCount++;
+  }
+  const list=[...m.values()].sort((a,b) => b.total-a.total || b.dice-a.dice || a.name.localeCompare(b.name));
+  if (un.dice) list.push(un);
+  return {list, rolledTotal, rolledCount};
+}
+let doneLive=false;
+function renderTab(){
+  const tab=state.ui.tab||'log', body=$('#tabBody');
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('on', t.dataset.tab===tab));
+  const pendN = allRolled().filter(x => !x.d.done).length, badge=$('#doneBadge');
+  badge.hidden = !pendN; badge.textContent = pendN; badge.title = `${pendN} rolled ${pendN===1?'die':'dice'} not marked done yet`;
+  const showDone = tab==='done' && !$('#game').hidden;
+  $('#donePanel').hidden = !showDone;
+  if (showDone && !doneLive){ doneLive=true; requestAnimationFrame(() => { DoneJar.resize(); DoneJar.build(false); }); }
+  if (!showDone) doneLive=false;
+  if (tab==='log'){
+    if (!state.pulls.length){ body.innerHTML='<p class="empty">No pulls yet. The log fills up as dice leave the jar.</p>'; return; }
+    body.innerHTML = state.pulls.slice().reverse().map(p => {
+      const idx=state.pulls.indexOf(p), done=pullDone(p) && !(p===lastPull() && rolling.size);
+      const groups=groupPull(p);
+      return `<div class="log-item"><div class="log-head"><b>Pull #${p.n}</b><span class="muted">${fmtTime(p.time)}</span>
+        <button class="btn sm ghost" data-gif="${idx}" ${done?'':'disabled'} aria-label="Roll GIF">🎞️</button>
+        <button class="btn sm ghost" data-share="${idx}" ${done?'':'disabled'}>📋 Share</button></div>
+        <div class="chiprow">${p.dice.map((d,i) => `<span class="dchip ${d.done?'done':''}"><i style="background:${chipC(d.type)}"></i>${d.result!=null && !(p===lastPull() && rolling.has(i)) ? dhtml(d) : esc(dname(d))+' <b>…</b>'} · ${esc(playerName(d.player))}${d.done?' ✅':''}${d.st?' 👻':''}</span>`).join('')}</div>
+        ${done ? `<div class="log-sum">${groups.map(g=>`${esc(g.name)}: <b>${g.total}</b>`).join(' · ')}</div>` : ''}</div>`;
+    }).join('');
+  } else if (tab==='stats'){
+    const {list, rolledTotal, rolledCount}=computeStats(), total=state.initial.length, left=state.jar.length;
+    let rank=0;
+    body.innerHTML = `
+      <div class="section-actions"><button class="btn" id="btnShareStats" ${state.pulls.length?'':'disabled'}>📋 Share stats</button></div>
+      <div class="tiles">
+        <div class="tile"><small>Dice pulled</small><b>${total-left}</b><small>of ${total}</small></div>
+        <div class="tile"><small>Left in jar</small><b>${left}</b></div>
+        <div class="tile"><small>All rolls total</small><b>${rolledTotal}</b></div>
+        <div class="tile"><small>Average roll</small><b>${rolledCount ? (rolledTotal/rolledCount).toFixed(1) : '–'}</b></div>
+      </div>
+      ${list.length ? list.map(s => {
+        const medal = s.id===null ? '❔' : (s.total>0 ? (['🥇','🥈','🥉'][rank++] || '🎲') : '🎲');
+        return `<div class="prank"><div class="medal">${medal}</div><div class="pinfo"><div class="pname">${esc(s.name)}</div>
+          <div class="pmeta">${s.dice} ${s.dice===1?'die':'dice'} · ${s.pulls.size} ${s.pulls.size===1?'pull':'pulls'}${s.dice?` · best roll ${s.high}`:''}</div>
+          ${s.dice ? `<div class="pmeta">✅ ${s.doneTotal} done · ⏳ ${s.total-s.doneTotal} to go</div>` : ''}
+          <div class="ptypes">${ALLT.filter(T=>s.types[T.t]).map(T=>`<span style="box-shadow:inset 3px 0 0 ${T.ui||T.c}">${T.t} × ${s.types[T.t]}</span>`).join('')}</div></div>
+          <div class="ptotal"><b>${s.total}</b><small>total</small></div></div>`;
+      }).join('') : '<p class="empty">Add players with the 👥 Players button to track who gets what.</p>'}`;
+  } else if (tab==='done'){
+    const rolled=allRolled(), done=rolled.filter(x=>x.d.done), pend=rolled.filter(x=>!x.d.done), inJar=rolled.filter(x=>inDoneJar(x.d));
+    $('#doneTag').innerHTML = `<b>${inJar.length}</b><small>of ${state.initial.length} done</small>`;
+    const groups=new Map();
+    pend.forEach(x => { const k=x.d.player||''; if(!groups.has(k)) groups.set(k,[]); groups.get(k).push(x); });
+    const order=[...state.players.map(p=>p.id), ''].filter(k=>groups.has(k));
+    body.innerHTML = `
+      <div class="section-actions"><button class="btn" data-snap>📸 Snapshot</button><button class="btn" id="btnShareDone" ${rolled.length?'':'disabled'}>📋 Share completed jar</button></div>
+      <h3 style="margin-top:4px">⏳ Waiting to be done</h3>
+      ${pend.length ? `<p class="hint">Tap a die once its tasks are finished. It drops into the completed jar.</p>` + order.map(k => {
+        const list=groups.get(k), tasks=list.reduce((a,x)=>a+val(x.d),0);
+        return `<div class="pgroup"><div class="pgroup-head"><b>${esc(k?playerName(k):'Unassigned')}</b><span>${list.length} ${list.length===1?'die':'dice'} · ${tasks} tasks</span></div>
+          <div class="pend-grid">${list.map(x => `<button class="pend" data-done="${x.pi}:${x.i}"><i style="background:${chipC(x.d.type)}"></i>
+            <span class="pr">${dhtml(x.d)}</span><span class="ok">${returnsToJar(x.d) ? '✓ Back to jar' : '✓ Done'}</span></button>`).join('')}</div></div>`;
+      }).join('') : `<p class="empty">${rolled.length ? 'Nothing pending. Everyone is all caught up! 🎉' : 'Rolled dice wait here until their tasks are done.'}</p>`}
+      ${done.length ? `<details class="donelist"><summary>✅ Completed (${done.length})</summary><div class="chiprow">${done.slice().reverse().map(x =>
+        `<span class="dchip done"><i style="background:${chipC(x.d.type)}"></i>${dhtml(x.d)} · ${esc(playerName(x.d.player))}${x.d.st ? ' · 👻 stolen' : x.d.back ? ' · ↩ back in jar' : ''}${inDoneJar(x.d) && !isGhost(x.d) || x.d.back ? `<button data-undone="${x.pi}:${x.i}" aria-label="Mark not done">↶</button>` : ''}</span>`).join('')}</div></details>` : ''}`;
+  } else {
+    const init={}, left={};
+    state.initial.forEach(d => init[d.type]=(init[d.type]||0)+1);
+    state.jar.forEach(d => left[d.type]=(left[d.type]||0)+1);
+    body.innerHTML = `<div class="section-actions"><button class="btn" data-snap>📸 Snapshot</button><button class="btn" id="btnShareJar">📋 Share what's left</button></div>` + ALLT.filter(T=>init[T.t]).map(T => `
+      <div class="jrow"><canvas data-t="${T.t}"></canvas><span class="nm">${T.t}</span>
+        <div class="bar"><i style="width:${(left[T.t]||0)/init[T.t]*100}%;background:${T.ui||T.c}"></i></div>
+        <span class="ct"><b>${left[T.t]||0}</b> / ${init[T.t]}</span></div>`).join('');
+    body.querySelectorAll('canvas[data-t]').forEach(c => drawIcon(c, c.dataset.t));
+  }
+}
+document.querySelector('.tabs').addEventListener('click', e => { const t=e.target.closest('.tab'); if(!t) return; state.ui.tab=t.dataset.tab; save(); renderTab(); });
+$('#tabBody').addEventListener('click', e => {
+  if (e.target.closest('[data-snap]')) return snapModal();
+  const s=e.target.closest('[data-share]'); if (s){ const p=state.pulls[+s.dataset.share]; shareModal(`Share Pull #${p.n}`, pullText(p)); return; }
+  const g=e.target.closest('[data-gif]'); if (g){ gifModal(state.pulls[+g.dataset.gif]); return; }
+  if (e.target.closest('#btnShareStats')) return shareModal('Share stats', statsText());
+  if (e.target.closest('#btnShareJar')) return shareModal("Share what's left", jarText());
+  if (e.target.closest('#btnShareDone')) return shareModal('Share completed jar', doneText());
+  const dn=e.target.closest('[data-done],[data-undone]');
+  if (dn){
+    const mark = dn.hasAttribute('data-done'), [pi,i]=(dn.dataset.done||dn.dataset.undone).split(':').map(Number);
+    const d=state.pulls[pi] && state.pulls[pi].dice[i]; if(!d) return;
+    if (!setDone(d, mark)) return;
+    save();
+    renderTab(); renderPullControls();
+    if (mark) toast(returnsToJar(d) ? `👻 ${baseName(d)} done. It climbs back into the jar…` : `✅ ${dname(d)} (${rtext(d)}) done for ${playerName(d.player)}`);
+    checkEmpty();
+  }
+});
+
+/* ---- discord text ---- */
+function pullText(p){
+  const isLast = p===lastPull(), left=state.jar.length, L=[DIV, `🫙 **${title()} · Pull #${p.n}**`, ''];
+  if (p.dice.some(d=>d.x2)) L.push('😈 **Possessed!** This pull counts double', '');
+  for (const g of groupPull(p)){
+    L.push(`👤 **${g.name}**`);
+    g.dice.forEach(d => L.push(`${isGhost(d)||d.h?'👻':isSpooky(d)?'🎃':'🎲'} ${d.h?'Haunted '+baseName(d):dname(d)} → **${rtext(d)}**`));
+    if (g.dice.filter(d=>val(d)>0).length>1) L.push(`➜ Total: **${g.total}**`);
+    L.push('');
+  }
+  if (isLast) L.push(left>0 ? `🫙 ${left} of ${state.initial.length} dice left in the jar` : trulyEmpty() ? '🎉 That was the last of the jar!' : '🫙 The jar is empty… for now. 👻');
+  L.push(DIV);
+  return L.join('\n');
+}
+function statsText(){
+  const {list}=computeStats(), total=state.initial.length, left=state.jar.length;
+  const L=[DIV, `🏆 **${title()} · Standings**`, `🫙 ${total-left} of ${total} dice pulled · ${left} left`, ''];
+  let rank=0;
+  list.forEach(s => {
+    const medal = s.id===null ? '❔' : (s.total>0 ? (['🥇','🥈','🥉'][rank++] || '🎲') : '🎲');
+    L.push(`${medal} **${s.name}** — **${s.total}** total from ${s.dice} ${s.dice===1?'die':'dice'}`);
+    const tb=ALLT.filter(T=>s.types[T.t]).map(T=>`${T.t}×${s.types[T.t]}`).join(' · ');
+    if (tb) L.push(`└ ${tb}`);
+    if (s.dice) L.push(`└ ✅ ${s.doneTotal} done · ⏳ ${s.total-s.doneTotal} to go`);
+  });
+  if (!list.length) L.push('No players yet.');
+  if (total && left===0) L.push('', '🎉 **The jar is empty!**');
+  L.push(DIV);
+  return L.join('\n');
+}
+
+const meter = (v,t) => { const k = t ? Math.round(v/t*10) : 0; return '▰'.repeat(k) + '▱'.repeat(10-k); };
+function jarText(){
+  const total=state.initial.length, left=state.jar.length, init={}, rem={};
+  state.initial.forEach(d => init[d.type]=(init[d.type]||0)+1);
+  state.jar.forEach(d => rem[d.type]=(rem[d.type]||0)+1);
+  const L=[DIV, `🫙 **${title()} · Left in the jar**`, `**${left}** of ${total} dice still in the jar`, ''];
+  ALLT.filter(T=>init[T.t]).forEach(T => L.push(`${T.t==='spooky'?'🎃':T.t==='ghost'?'👻':'🎲'} **${T.t}** ${meter(rem[T.t]||0, init[T.t])} ${rem[T.t]||0} / ${init[T.t]}`));
+  if (!left) L.push('', '🎉 **The jar is empty!**');
+  L.push(DIV);
+  return L.join('\n');
+}
+function doneText(){
+  const rolled=allRolled(), done=rolled.filter(x=>inDoneJar(x.d)), total=state.initial.length;
+  const L=[DIV, `✅ **${title()} · Completed Jar**`, `${meter(done.length,total)} **${done.length}** of ${total} dice in the Done jar`, ''];
+  const ids=[...state.players.map(p=>p.id), null];
+  ids.forEach(id => {
+    const mine=rolled.filter(x=>(x.d.player||null)===id); if(!mine.length) return;
+    const dn=mine.filter(x=>x.d.done), pd=mine.filter(x=>!x.d.done);
+    L.push(`👤 **${id ? playerName(id) : 'Unassigned'}**`);
+    L.push(`└ ✅ ${dn.length} ${dn.length===1?'die':'dice'} done (${dn.reduce((a,x)=>a+val(x.d),0)} tasks)`);
+    if (pd.length) L.push(`└ ⏳ Still to do: ${pd.map(x=>`${dname(x.d)} → **${rtext(x.d)}**`).join(', ')}`);
+  });
+  if (!rolled.length) L.push('No dice rolled yet.');
+  if (state.possessed.length) L.push('', `😈 Possessed: ${state.possessed.map(playerName).join(', ')} (next pull counts double)`);
+  if (total && done.length===total) L.push('', '🏆 **Every die is done. Game complete!**');
+  L.push(DIV);
+  return L.join('\n');
+}
+
+/* ---- save codes ---- */
+function b64(bytes){ let s=''; for (let i=0;i<bytes.length;i+=0x8000) s+=String.fromCharCode.apply(null, bytes.subarray(i,i+0x8000)); return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
+function unb64(s){ s=s.replace(/-/g,'+').replace(/_/g,'/'); while(s.length%4) s+='='; const b=atob(s), u=new Uint8Array(b.length); for(let i=0;i<b.length;i++) u[i]=b.charCodeAt(i); return u; }
+async function pipe(bytes, stream){ return new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(stream)).arrayBuffer()); }
+/* v2 codes: compact JSON, deflated, then packed 14 bits per character into CJK letters (about 2.3× shorter than v1) */
+const CJK0 = 0x4E00;
+function toCJK(bytes){
+  let out='', acc=0, bits=0;
+  for (const b of bytes){ acc=(acc<<8)|b; bits+=8; while (bits>=14){ bits-=14; out+=String.fromCharCode(CJK0+((acc>>bits)&0x3FFF)); } acc&=(1<<bits)-1; }
+  if (bits>0) out+=String.fromCharCode(CJK0+((acc<<(14-bits))&0x3FFF));
+  return out + (Math.floor(out.length*14/8) > bytes.length ? '=' : '');
+}
+function fromCJK(str){
+  let drop=false; if (str.endsWith('=')){ drop=true; str=str.slice(0,-1); }
+  const out=[]; let acc=0, bits=0;
+  for (const ch of str){
+    const v=ch.charCodeAt(0)-CJK0; if (v<0 || v>0x3FFF) throw new Error('That save code is damaged.');
+    acc=(acc<<14)|v; bits+=14; while (bits>=8){ bits-=8; out.push((acc>>bits)&255); } acc&=(1<<bits)-1;
+  }
+  if (drop) out.pop();
+  return Uint8Array.from(out);
+}
+const GHOST_M = ['s','r','w','p'];
+async function makeCode(){
+  const di=new Map(state.initial.map((d,i)=>[d.id,i])), pi=new Map(state.players.map((p,i)=>[p.id,i]));
+  let prevMin = state.pulls.length ? Math.round(state.pulls[0].time/60000) : 0;
+  const o={v:2, t:state.title, p:state.players.map(p=>p.name),
+    k:state.spooky.map(x => [x.name, x.faces, x.count||0]), g:state.counts.ghost||0,
+    i:state.initial.map(d => isSpooky(d) ? 'abcdefghijklmnopqrst'[Math.max(0,state.spooky.findIndex(x=>x.id===d.sk))] : isGhost(d) ? 'z' : TYPES.findIndex(T=>T.t===d.type)).join(''),
+    j:state.jar.map(d => di.get(d.id)),
+    m:prevMin,
+    u:state.pulls.map(p => { const mn=Math.round(p.time/60000), dt=Math.max(0,mn-prevMin); prevMin=mn;
+      return [dt, p.dice.map(d => { const e=[di.get(d.id), d.result ?? -1, pi.has(d.player) ? pi.get(d.player) : -1, (d.done?1:0)|(d.st?2:0)|(d.h?4:0)|(d.x2?8:0)|(d.back?16:0)];
+        if (d.gh) e.push([GHOST_M.indexOf(d.gh.m), d.gh.n||0, d.gh.sid!=null ? di.get(d.gh.sid) : -1]);
+        return e; })]; }),
+    x:state.possessed.map(id => pi.get(id)).filter(v => v!=null),
+    c:(state.celebrated?1:0)+(state.celebratedDone?2:0)};
+  const bytes=new TextEncoder().encode(JSON.stringify(o));
+  if (window.CompressionStream){ try{ return 'DJ2-' + toCJK(await pipe(bytes, new CompressionStream('deflate-raw'))); }catch(e){} }
+  return 'DJ1-' + toCJK(bytes);
+}
+async function readCode(code){
+  const c = String(code).replace(/\s+/g,'');
+  if (/^DJ[Z0]-/.test(c)) return readCodeV1(c);
+  const m = /^DJ([12])-(.+)$/.exec(c);
+  if (!m) throw new Error("That doesn't look like a Dice Jar save code.");
+  let bytes = fromCJK(m[2]);
+  if (m[1]==='2'){
+    if (!window.DecompressionStream) throw new Error('This browser is too old to read that code. Try Chrome, Edge, Firefox or Safari 16.4+.');
+    bytes = await pipe(bytes, new DecompressionStream('deflate-raw'));
+  }
+  const o=JSON.parse(new TextDecoder().decode(bytes)), s=defaults();
+  if (!o || o.v!==2 || typeof o.i!=='string' || !/^[0-6a-tz]*$/.test(o.i)) throw new Error('That save code is damaged.');
+  s.title=String(o.t||'').slice(0,40);
+  s.players=(o.p||[]).map((n,i)=>({id:'p'+i+'r'+Math.random().toString(36).slice(2,6), name:String(n).slice(0,24)}));
+  s.spooky=(o.k||[]).map((k,i)=>({id:'s'+i+'r', name:String(k[0]||'Spooky die').slice(0,24), faces:parseFaces((k[1]||[]).join('\n')), count:+k[2]||0}));
+  s.initial=[...o.i].map((ch,i)=> /[0-6]/.test(ch) ? {id:'x'+i+'r', type:TYPES[+ch].t} : ch==='z' ? {id:'x'+i+'r', type:'ghost'} : {id:'x'+i+'r', type:'spooky', sk:(s.spooky[ch.charCodeAt(0)-97]||{}).id});
+  if (s.initial.some(d => d.type==='spooky' && !d.sk)) throw new Error('That save code is damaged.');
+  TYPES.forEach(T => s.counts[T.t]=0); s.initial.forEach(d => { if (TYPE[d.type] && TYPES.includes(TYPE[d.type])) s.counts[d.type]++; });
+  s.counts.ghost = +o.g || 0;
+  const die = i => { const b=s.initial[i]; if (!b) throw new Error('That save code is damaged.'); return b; };
+  const nm = b => b.type==='spooky' ? ((s.spooky.find(x=>x.id===b.sk)||{}).name || 'Spooky die') : b.type==='ghost' ? GHOST_NAME : b.type;
+  let mn = +o.m || 0;
+  s.pulls=(o.u||[]).map((q,n) => { mn += (+q[0]||0); return {id:'u'+n+'r', n:n+1, time:mn*60000, dice:q[1].map((a,k) => {
+    const b=die(a[0]), f=+a[3]||0, d={id:b.id, type:b.type, ...(b.sk?{sk:b.sk}:{}), result:a[1]>=1 ? a[1] : null, player:(s.players[a[2]]||{}).id||null};
+    if (f&1){ d.done=true; d.doneAt=mn*60000+k; } if (f&2) d.st=1; if (f&4) d.h=1; if (f&8) d.x2=1; if (f&16) d.back=1;
+    if (a[4]){ const [gm,gn,gs]=a[4]; d.gh={m:GHOST_M[gm]||'r'}; if (gn) d.gh.n=gn; if (gs>=0){ const sb=die(gs); d.gh.sid=sb.id; d.gh.sn=nm(sb); } }
+    return d; })}; });
+  s.jar=shuffle((o.j||[]).map(i => ({...die(i)})));
+  s.possessed=(o.x||[]).map(i => (s.players[i]||{}).id).filter(Boolean);
+  s.celebrated=!!(o.c&1); s.celebratedDone=!!(o.c&2);
+  s.phase=s.initial.length?'game':'setup'; s.seq=100; s.ui.tab=state.ui.tab;
+  return s;
+}
+async function makeCodeOld(){
+  const di=new Map(state.initial.map((d,i)=>[d.id,i])), pi=new Map(state.players.map((p,i)=>[p.id,i]));
+  const o={v:1, t:state.title, p:state.players.map(p=>p.name),
+    i:state.initial.map(d => isSpooky(d) ? 'abcdefghijklmnopqrst'[Math.max(0,state.spooky.findIndex(x=>x.id===d.sk))] : TYPES.findIndex(T=>T.t===d.type)).join(''),
+    k:state.spooky.map(x => [x.name, x.faces, x.count||0]),
+    u:state.pulls.map(p => [Math.round(p.time/1000), p.dice.map(d => [di.get(d.id), d.result ?? -1, pi.has(d.player) ? pi.get(d.player) : -1, d.done ? 1 : 0])]),
+    c:(state.celebrated?1:0)+(state.celebratedDone?2:0)};
+  const bytes=new TextEncoder().encode(JSON.stringify(o));
+  if (window.CompressionStream){ try{ return 'DJZ-' + b64(await pipe(bytes, new CompressionStream('deflate-raw'))); }catch(e){} }
+  return 'DJ0-' + b64(bytes);
+}
+async function readCodeV1(code){
+  const m=/^DJ([Z0])-([A-Za-z0-9_-]+)$/.exec(code.replace(/\s+/g,''));
+  if (!m) throw new Error("That doesn't look like a Dice Jar save code.");
+  let bytes=unb64(m[2]);
+  if (m[1]==='Z'){
+    if (!window.DecompressionStream) throw new Error('This browser is too old to read that code. Try Chrome, Edge, Firefox or Safari 16.4+.');
+    bytes=await pipe(bytes, new DecompressionStream('deflate-raw'));
+  }
+  const o=JSON.parse(new TextDecoder().decode(bytes)), s=defaults();
+  if (!o || o.v!==1 || typeof o.i!=='string' || !/^[0-6a-t]*$/.test(o.i)) throw new Error('That save code is damaged.');
+  s.title=String(o.t||'').slice(0,40);
+  s.players=(o.p||[]).map((n,i)=>({id:'p'+i+'r'+Math.random().toString(36).slice(2,6), name:String(n).slice(0,24)}));
+  s.spooky=(o.k||[]).map((k,i)=>({id:'s'+i+'r', name:String(k[0]||'Spooky die').slice(0,24), faces:parseFaces((k[1]||[]).join('\n')), count:+k[2]||0}));
+  s.initial=[...o.i].map((c,i)=> /[0-6]/.test(c) ? {id:'x'+i+'r', type:TYPES[+c].t} : {id:'x'+i+'r', type:'spooky', sk:(s.spooky[c.charCodeAt(0)-97]||{}).id});
+  if (s.initial.some(d => d.type==='spooky' && !d.sk)) throw new Error('That save code is damaged.');
+  TYPES.forEach(T => s.counts[T.t]=0); s.initial.forEach(d => { if (d.type!=='spooky') s.counts[d.type]++; });
+  const used=new Set(), now=Date.now();
+  s.pulls=(o.u||[]).map((q,n) => ({id:'u'+n+'r', n:n+1, time:(q[0]*1000)||now, dice:q[1].map(a => {
+    const base=s.initial[a[0]]; if (!base || used.has(base.id)) throw new Error('That save code is damaged.');
+    used.add(base.id);
+    const r = a[1] >= 1 && a[1] <= (base.type==='spooky' ? (s.spooky.find(x=>x.id===base.sk)||{faces:[]}).faces.length : TYPE[base.type].s) ? a[1] : null;
+    return {id:base.id, type:base.type, ...(base.sk?{sk:base.sk}:{}), result:r, player:(s.players[a[2]]||{}).id||null, done:!!a[3] && r!=null, doneAt:a[3]?now+n:undefined};
+  })}));
+  s.jar=shuffle(s.initial.filter(d=>!used.has(d.id)).map(d=>({...d})));
+  s.celebrated=!!(o.c&1); s.celebratedDone=!!(o.c&2);
+  s.phase=s.initial.length?'game':'setup'; s.seq=100; s.ui.tab=state.ui.tab;
+  return s;
+}
+async function saveModal(){
+  const inGame = state.phase==='game' && state.initial.length;
+  openModal(`<h2>💾 Save code</h2>
+    ${inGame ? `<p class="hint">This code holds the whole game: the jar, every roll, who got what and what's done. Keep a copy somewhere safe (a pinned Discord message works) and paste it back in to carry on, even on another phone or computer. Grab a fresh code after each session.</p>
+      <div class="code-box" id="mCode">Making code…</div><p class="hint" id="mCodeInfo" style="margin-top:6px"></p>
+      <div class="modal-actions"><button class="btn primary" id="mCopyCode" disabled>📋 Copy code</button><button class="btn" id="mDlCode" disabled>⬇ Download</button></div><hr>` : ''}
+    <h3 style="margin-top:0">Restore a game</h3>
+    <p class="hint">Paste a save code. ${inGame ? 'This replaces the game on this device.' : ''}</p>
+    <textarea class="code-in" id="mCodeIn" placeholder="DJ2-…" spellcheck="false" autocomplete="off"></textarea>
+    <div class="warn" id="mCodeErr"></div>
+    <div class="modal-actions"><button class="btn coral" id="mRestore">Restore game</button><button class="btn ghost" data-close>Close</button></div>`);
+  $('#mRestore').onclick = async () => {
+    const v=$('#mCodeIn').value.trim(); if(!v){ $('#mCodeErr').textContent='Paste a code first.'; return; }
+    try{
+      const s=await readCode(v);
+      rolling.clear(); state=s; save(); closeModal();
+      if (state.phase==='game'){ showGame(false); } else showSetup();
+      toast('💾 Game restored!');
+    }catch(e){ $('#mCodeErr').textContent = e.message && !/JSON|Unexpected|token/i.test(e.message) ? e.message : 'That code could not be read. Check it was copied in full.'; }
+  };
+  if (inGame){
+    const code=await makeCode(); if (!$('#mCode')) return;
+    $('#mCode').textContent=code;
+    $('#mCodeInfo').textContent = code.length <= 1900 ? `${code.length} characters. Fits in one Discord message.` : `${code.length} characters. Too long for one Discord message, so use Download or a notes app.`;
+    $('#mCopyCode').disabled=false; $('#mDlCode').disabled=false;
+    $('#mCopyCode').onclick = async () => toast(await copyText(code) ? '✅ Save code copied' : 'Select the code and copy it manually.');
+    $('#mDlCode').onclick = () => download(new Blob([code],{type:'text/plain'}), `${title().replace(/[^\w-]+/g,'-')}-save-${new Date().toISOString().slice(0,10)}.txt`);
+  }
+}
+function download(blob, name){
+  const a=document.createElement('a'), url=URL.createObjectURL(blob); a.href=url; a.download=name;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url), 60000);
+}
+$('#btnSave').onclick = saveModal;
+$('#btnSnap').onclick = snapModal;
+$('#btnRestoreSetup').onclick = saveModal;
+
+/* ---- roll GIF ---- */
+const LZT = new Int16Array(1<<20);
+function lzw(px, minCode){
+  const clear=1<<minCode, eoi=clear+1, out=[], used=[];
+  let size=minCode+1, next=eoi+1, cur=0, bits=0;
+  const emit = c => { cur|=c<<bits; bits+=size; while(bits>=8){ out.push(cur&255); cur>>>=8; bits-=8; } };
+  const reset = () => { for (const k of used) LZT[k]=0; used.length=0; size=minCode+1; next=eoi+1; };
+  emit(clear);
+  let prefix=px[0];
+  for (let i=1;i<px.length;i++){
+    const k=px[i], key=(prefix<<8)|k, c=LZT[key];
+    if (c){ prefix=c; continue; }
+    emit(prefix);
+    if (next===4096){ emit(clear); reset(); }
+    else { if (next >= (1<<size)) size++; LZT[key]=next++; used.push(key); }
+    prefix=k;
+  }
+  emit(prefix); emit(eoi); if (bits>0) out.push(cur&255);
+  reset(); return out;
+}
+function medianCut(hist, max){
+  const cols=[]; for (let k=0;k<32768;k++) if (hist[k]) cols.push(k);
+  const ch=(k,c) => c===0 ? k>>10 : c===1 ? (k>>5)&31 : k&31;
+  const avg = b => { let w=0,r=0,g=0,bl=0; for (const k of b){ const h=hist[k]; w+=h; r+=ch(k,0)*h; g+=ch(k,1)*h; bl+=ch(k,2)*h; } return [r/w*8.226|0, g/w*8.226|0, bl/w*8.226|0]; };
+  if (cols.length<=max) return cols.map(k=>avg([k]));
+  const boxes=[cols];
+  while (boxes.length<max){
+    let bi=-1, bs=-1, bch=0;
+    boxes.forEach((b,i) => {
+      if (b.length<2) return;
+      let rng=0, c0=0, w=0;
+      for (let c=0;c<3;c++){ let lo=99,hi=-1; for (const k of b){ const v=ch(k,c); if(v<lo)lo=v; if(v>hi)hi=v; } if (hi-lo>rng){ rng=hi-lo; c0=c; } }
+      for (const k of b) w+=hist[k];
+      const sc=rng*Math.log2(2+w); if (sc>bs){ bs=sc; bi=i; bch=c0; }
+    });
+    if (bi<0) break;
+    const b=boxes[bi].sort((x,y)=>ch(x,bch)-ch(y,bch));
+    let tot=0; for (const k of b) tot+=hist[k];
+    let acc=0, cut=1; for (let j=0;j<b.length-1;j++){ acc+=hist[b[j]]; if (acc>=tot/2){ cut=j+1; break; } cut=j+1; }
+    boxes.splice(bi,1,b.slice(0,cut),b.slice(cut));
+  }
+  return boxes.map(avg);
+}
+function encodeGIF(W, H, frames, delays){
+  const hist=new Uint32Array(32768);
+  for (const d of frames) for (let i=0;i<d.length;i+=8) hist[((d[i]>>3)<<10)|((d[i+1]>>3)<<5)|(d[i+2]>>3)]++;
+  const pal=medianCut(hist,256), map=new Int16Array(32768).fill(-1);
+  const look = k => {
+    let v=map[k]; if (v>=0) return v;
+    const r=(k>>10)*8+4, g=((k>>5)&31)*8+4, b=(k&31)*8+4; let bd=1e9;
+    for (let j=0;j<pal.length;j++){ const c=pal[j], dr=c[0]-r, dg=c[1]-g, db=c[2]-b, dd=2*dr*dr+4*dg*dg+3*db*db; if (dd<bd){ bd=dd; v=j; } }
+    return map[k]=v;
+  };
+  const idx=frames.map(d => { const o=new Uint8Array(W*H); for (let i=0,j=0;j<o.length;i+=4,j++) o[j]=look(((d[i]>>3)<<10)|((d[i+1]>>3)<<5)|(d[i+2]>>3)); return o; });
+  const out=[], w16=v=>out.push(v&255,(v>>8)&255), str=s=>{ for (const c of s) out.push(c.charCodeAt(0)); };
+  str('GIF89a'); w16(W); w16(H); out.push(0xF7,0,0);
+  for (let j=0;j<256;j++){ const c=pal[j]||[0,0,0]; out.push(c[0],c[1],c[2]); }
+  out.push(0x21,0xFF,11); str('NETSCAPE2.0'); out.push(3,1,0,0,0);
+  const list=[]; let prev=null;
+  idx.forEach((f,k) => {
+    let x0=0,y0=0,x1=W-1,y1=H-1;
+    if (prev){
+      x0=W; y0=H; x1=-1; y1=-1;
+      for (let y=0;y<H;y++){ const r=y*W; for (let x=0;x<W;x++) if (f[r+x]!==prev[r+x]){ if(x<x0)x0=x; if(x>x1)x1=x; if(y<y0)y0=y; y1=y; } }
+      if (x1<0){ list[list.length-1].delay+=delays[k]; return; }
+    }
+    list.push({f,x0,y0,x1,y1,delay:delays[k]}); prev=f;
+  });
+  for (const fr of list){
+    const w=fr.x1-fr.x0+1, h=fr.y1-fr.y0+1, sub=new Uint8Array(w*h);
+    for (let y=0;y<h;y++){ const s=(fr.y0+y)*W+fr.x0; sub.set(fr.f.subarray(s,s+w), y*w); }
+    out.push(0x21,0xF9,4,4); w16(fr.delay); out.push(0,0);
+    out.push(0x2C); w16(fr.x0); w16(fr.y0); w16(w); w16(h); out.push(0, 8);
+    const data=lzw(sub,8);
+    for (let i=0;i<data.length;i+=255){ const n=Math.min(255,data.length-i); out.push(n); for (let j=0;j<n;j++) out.push(data[i+j]); }
+    out.push(0);
+  }
+  out.push(0x3B);
+  return new Uint8Array(out);
+}
+function seeded(str){ let a=0; for (const c of str) a=(a*31+c.charCodeAt(0))|0; return () => { a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+function bounce(p){ const n=7.5625, d=2.75; if (p<1/d) return n*p*p; if (p<2/d) return n*(p-=1.5/d)*p+.75; if (p<2.5/d) return n*(p-=2.25/d)*p+.9375; return n*(p-=2.625/d)*p+.984375; }
+function makeGif(p){
+  const n=p.dice.length, cols = n===1?1 : n<=4?2 : n<=9?3 : 4, rows=Math.ceil(n/cols);
+  const W=480, cell=Math.min(170, Math.floor((W-40)/cols)), top=96, labelH=34, rowH=cell+labelH;
+  const H=top+rows*rowH+92, x0=(W-cols*cell)/2;
+  const stagger = n>8 ? 2 : 3, fall=16, last=(n-1)*stagger+fall, total=last+5;
+  const rand=seeded(p.id), dice=p.dice.map((d,i) => ({d, i, spin:(rand()<.5?-1:1)*(Math.PI*(3+rand()*2)), rest:rand()*.4-.2,
+    flick:Array.from({length:12},()=>1+Math.floor(rand()*sides(d)))}));
+  const idx=state.pulls.indexOf(p); let pulled=0; for (let i=0;i<=idx;i++) pulled+=state.pulls[i].dice.length;
+  const left=state.initial.length-pulled, groups=groupPull(p);
+  const cv=document.createElement('canvas'); cv.width=W; cv.height=H;
+  const ctx=cv.getContext('2d', {willReadFrequently:true});
+  const font = (w,s,f='Fredoka') => `${w} ${s}px ${f}, Nunito, sans-serif`;
+  const rr = (x,y,w,h,r) => { ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(x,y,w,h,r); else ctx.rect(x,y,w,h); };
+  function frame(f){
+    ctx.fillStyle='#191430'; ctx.fillRect(0,0,W,H);
+    ctx.fillStyle='#2b2350'; rr(12,top-12,W-24,rows*rowH+16,20); ctx.fill();
+    ctx.textBaseline='alphabetic'; ctx.textAlign='left';
+    ctx.fillStyle='#c8bfea'; ctx.font=font(700,17,'Nunito'); ctx.fillText(title().toUpperCase(), 20, 34);
+    ctx.fillStyle='#ffc94d'; ctx.font=font(700,36); ctx.fillText(`Pull #${p.n}`, 20, 74);
+    ctx.textAlign='right'; ctx.fillStyle='#c8bfea'; ctx.font=font(600,16); ctx.fillText('THE DICE JAR', W-20, 34);
+    for (const o of dice){
+      const c=o.i%cols, r=Math.floor(o.i/cols), cx=x0+c*cell+cell/2, cy=top+r*rowH+cell*.5, rad=cell*.33;
+      const local=f-o.i*stagger;
+      ctx.textAlign='center'; ctx.fillStyle='#c8bfea'; ctx.font=font(700,15,'Nunito');
+      const spk = (isSpooky(o.d) || isGhost(o.d)) && local>=fall, txt = spk ? rtext(o.d) : `${dname(o.d)} · ${playerName(o.d.player)}`;
+      ctx.fillStyle = spk ? (isGhost(o.d) ? '#e2dcff' : '#ff8a1f') : '#c8bfea';
+      const maxW = cell-12, lines = [];
+      let fsz = spk ? 15 : 15; ctx.font = font(700,fsz,'Nunito');
+      if (ctx.measureText(txt).width <= maxW) lines.push(txt);
+      else { // wrap onto two lines, shrinking a little, then trim with …
+        fsz = 13; ctx.font = font(700,fsz,'Nunito'); let cur = '';
+        for (const w of txt.split(' ')){ const t2 = cur ? cur+' '+w : w; if (ctx.measureText(t2).width <= maxW || !cur) cur = t2; else { lines.push(cur); cur = w; } }
+        if (cur) lines.push(cur);
+        if (lines.length > 2){ lines.length = 2; lines[1] += '…'; }
+        lines.forEach((l,k) => { while (ctx.measureText(lines[k]).width > maxW && lines[k].length > 2) lines[k] = lines[k].slice(0,-2) + '…'; });
+      }
+      lines.forEach((l,k) => ctx.fillText(l, cx, cy+cell*.5+(lines.length>1 ? 12 : 18)+k*(fsz+2)));
+      if (local<0) continue;
+      const q=clamp(local/fall,0,1), h=(1-bounce(q))*(cy+rad+10), y=cy-h;
+      const landed=local>=fall, pop = local===fall ? 1.14 : local===fall+1 ? 1.06 : 1;
+      ctx.save(); ctx.translate(cx, cy+rad*.95); ctx.scale(1,.22);
+      ctx.beginPath(); ctx.arc(0,0,rad*(1-Math.min(.6,h/(cy+rad))),0,Math.PI*2); ctx.fillStyle='rgba(0,0,0,.4)'; ctx.fill(); ctx.restore();
+      drawDie(ctx, o.d.type, cx, y, rad*pop, o.rest + o.spin*Math.pow(1-q,2), landed ? o.d.result : o.flick[(local>>1)%12], {ls:1.28});
+    }
+    const fy=top+rows*rowH+30;
+    ctx.textAlign='center';
+    if (f>=last){
+      const parts=groups.map(g => [`${g.name} `, `${g.total}`]);
+      ctx.font=font(600,24); let w=0; parts.forEach(([a,b],k)=>{ w+=ctx.measureText(a).width+ctx.measureText(b).width+(k?ctx.measureText('  ·  ').width:0); });
+      let x=Math.max(16,(W-w)/2); ctx.textAlign='left';
+      parts.forEach(([a,b],k) => {
+        if (k){ ctx.fillStyle='#c8bfea'; ctx.fillText('  ·  ',x,fy); x+=ctx.measureText('  ·  ').width; }
+        ctx.fillStyle='#f8f5ff'; ctx.fillText(a,x,fy); x+=ctx.measureText(a).width;
+        ctx.fillStyle='#ffc94d'; ctx.fillText(b,x,fy); x+=ctx.measureText(b).width;
+      });
+      ctx.textAlign='center';
+    } else { ctx.fillStyle='#c8bfea'; ctx.font=font(600,22); ctx.fillText('Rolling…', W/2, fy); }
+    ctx.fillStyle='#c8bfea'; ctx.font=font(700,15,'Nunito');
+    ctx.fillText(left>0 ? `${left} of ${state.initial.length} dice left in the jar` : 'That was the last of the jar!', W/2, fy+30);
+    return ctx.getImageData(0,0,W,H).data;
+  }
+  const frames=[], delays=[];
+  for (let f=0; f<=total; f++){ frames.push(frame(f)); delays.push(f===total ? 400 : 5); }
+  return new Blob([encodeGIF(W,H,frames,delays)], {type:'image/gif'});
+}
+function gifModal(p){
+  if (!p || !pullDone(p)) return;
+  mediaModal(`🎞️ Pull #${p.n} GIF`, () => makeGif(p), `dice-jar-pull-${p.n}.gif`, `Animated roll for pull ${p.n}`, 'GIF');
+}
+function snapModal(){
+  if (!state.initial.length) return;
+  mediaModal('📸 Jar snapshot', makeSnapshot, `${title().replace(/[^\w-]+/g,'-')}-jars-${new Date().toISOString().slice(0,10)}.png`, 'Snapshot of the dice jar and the done jar', 'picture');
+}
+async function mediaModal(head, make, name, alt, noun){
+  openModal(`<h2>${head}</h2><p class="hint" id="gStatus">Making your ${noun}…</p><div class="gifbox" id="gBox"><div class="spin"></div></div>
+    <div class="modal-actions" id="gAct"><button class="btn ghost" data-close>Close</button></div>`);
+  await new Promise(r => setTimeout(r, 80));
+  if (document.fonts && document.fonts.ready) await document.fonts.ready;
+  let blob; try{ blob=await make(); }catch(e){ if ($('#gStatus')) $('#gStatus').textContent=`Sorry, the ${noun} could not be made on this device.`; return; }
+  if (!$('#gBox')) return;
+  const file=new File([blob], name, {type:blob.type});
+  const dataUrl = await new Promise(res => { const r=new FileReader(); r.onload=()=>res(r.result); r.readAsDataURL(blob); });
+  if (!$('#gBox')) return;
+  // a data: URL keeps "Save image" / "Save to Photos" working on every browser
+  $('#gBox').innerHTML=`<img src="${dataUrl}" alt="${esc(alt)}" draggable="true">`;
+  const mobile = matchMedia('(pointer:coarse)').matches || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  let canShare=false; try{ canShare = mobile && !!navigator.canShare && navigator.canShare({files:[file]}); }catch(e){}
+  const framed = (() => { try{ return window.self !== window.top; }catch(e){ return true; } })();
+  const status = m => { if ($('#gStatus')) $('#gStatus').textContent = m; };
+  status(canShare ? 'Ready! Tap Share and pick Discord, or "Save Image" to put it in your photos.'
+                  : 'Ready! Download it, then drag the file into Discord (or use the + button to upload).');
+  $('#gAct').innerHTML = (canShare ? `<button class="btn primary" id="gShare">↗ Share ${noun}</button>` : '')
+    + `<button class="btn ${canShare?'':'primary'}" id="gDl">⬇ ${canShare?'Save file':'Download '+noun}</button><button class="btn ghost" data-close>Close</button>`;
+  $('#gBox').insertAdjacentHTML('afterend', `<p class="gif-tip">${mobile ? `Or press and hold the ${noun} and choose Save.` : `Or right-click the ${noun} and choose “Save image as…”.`}</p>`);
+  $('#gDl').onclick = () => {
+    if (framed){ // previews and embedded pages often block downloads, so open the image on its own instead
+      const w = window.open(); if (w){ w.document.write(`<title>${name}</title><body style="margin:0;background:#191430;display:grid;place-items:center;min-height:100vh"><img src="${dataUrl}" style="max-width:100%"><p style="color:#c8bfea;font:16px sans-serif;text-align:center">Right-click or press and hold the image to save it.</p></body>`); w.document.close(); return; }
+    }
+    download(blob, name);
+    status(mobile ? 'Saved. On iPhone it goes to the Files app (Downloads). Share → Save Image puts it in Photos.' : `Saved to your Downloads folder as ${name}. Drag it into Discord.`);
+  };
+  if (canShare) $('#gShare').onclick = async () => {
+    try{ await navigator.share({files:[file]}); }
+    catch(e){ if (e && e.name==='AbortError') return; status(`Sharing was blocked here, so the ${noun} is downloading instead.`); download(blob, name); }
+  };
+}
+
+/* ---- jar snapshot: both jars side by side as one picture ---- */
+async function makeSnapshot(){
+  const JW=420, JH=520, gap=24, pad=32, top=118, W=pad*2+JW*2+gap, H=top+JH+150, S=2;
+  const out=document.createElement('canvas'); out.width=W*S; out.height=H*S;
+  const x=out.getContext('2d'); x.scale(S,S);
+  const total=state.initial.length, left=state.jar.length, rolled=allRolled(), done=rolled.filter(r=>inDoneJar(r.d)), pend=rolled.filter(r=>!r.d.done).length;
+  const font=(w,s,f='Fredoka')=>`${w} ${s}px ${f}, Nunito, sans-serif`;
+  const rr=(a,b,c,d,r)=>{ x.beginPath(); if (x.roundRect) x.roundRect(a,b,c,d,r); else x.rect(a,b,c,d); };
+  // background
+  const bg=x.createLinearGradient(0,0,W,H); bg.addColorStop(0,'#1f1838'); bg.addColorStop(1,'#191430');
+  x.fillStyle=bg; x.fillRect(0,0,W,H);
+  const glow=x.createRadialGradient(W*.15,0,10,W*.15,0,W*.6); glow.addColorStop(0,'rgba(255,201,77,.14)'); glow.addColorStop(1,'rgba(255,201,77,0)');
+  x.fillStyle=glow; x.fillRect(0,0,W,H);
+  // header
+  x.textAlign='left'; x.fillStyle='#c8bfea'; x.font=font(700,16,'Nunito');
+  x.fillText(new Date().toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long'}).toUpperCase(), pad, 40);
+  x.fillStyle='#ffc94d'; x.font=font(700,38); x.fillText(title(), pad, 84);
+  x.textAlign='right'; x.fillStyle='#c8bfea'; x.font=font(600,16); x.fillText('THE DICE JAR', W-pad, 40);
+  // the two jars, each settled fresh on its own canvas
+  const panels=[{label:'IN THE JAR', dice:state.jar, big:left, sub:`of ${total} left`, col:'#ffc94d'},
+                {label:'DONE JAR', dice:doneDice(), big:done.length, sub:`of ${total} done`, col:'#58e6c6'}];
+  panels.forEach((p,k) => {
+    const px=pad+k*(JW+gap);
+    x.fillStyle='rgba(43,35,80,.85)'; rr(px, top-8, JW, JH+100, 22); x.fill();
+    x.strokeStyle='rgba(70,59,120,.9)'; x.lineWidth=1.5; x.stroke();
+    const c=document.createElement('canvas'); c.width=JW*S; c.height=JH*S;
+    const j=makeJar(() => p.dice); j.initFixed(c); j.build(false); j.stop();
+    x.drawImage(c, px, top, JW, JH);
+    x.textAlign='center'; x.fillStyle='#c8bfea'; x.font=font(700,15,'Nunito'); x.fillText(p.label, px+JW/2, top+JH+24);
+    x.font=font(700,40); const bw=x.measureText(String(p.big)).width; x.font=font(600,20); const sw=x.measureText(' '+p.sub).width;
+    let sx=px+JW/2-(bw+sw)/2; x.textAlign='left';
+    x.fillStyle=p.col; x.font=font(700,40); x.fillText(String(p.big), sx, top+JH+68);
+    x.fillStyle='#f8f5ff'; x.font=font(600,20); x.fillText(' '+p.sub, sx+bw, top+JH+68);
+  });
+  // footer line
+  x.textAlign='center'; x.fillStyle='#c8bfea'; x.font=font(700,17,'Nunito');
+  const bits=[`${total-left} pulled`, `${done.length} done`]; if (pend) bits.push(`${pend} still to do`);
+  x.fillText(left===0 && done.length===total ? 'Every die is done. Game complete!' : bits.join('  ·  '), W/2, H-26);
+  return new Promise((res,rej) => out.toBlob(b => b ? res(b) : rej(new Error('toBlob failed')), 'image/png'));
+}
+
+/* ---- players modal ---- */
+function playersModal(){
+  const used = id => state.pulls.some(p => p.dice.some(d => d.player===id));
+  openModal(`<h2>Players</h2><p class="hint">Rename anyone at any time. Players with dice can't be removed.</p>
+    <div id="mPlayers">${state.players.map(p => `<div class="prow"><input type="text" maxlength="24" value="${esc(p.name)}" data-id="${p.id}" aria-label="Player name">
+      <button class="btn ghost" data-rm="${p.id}" ${used(p.id)?'disabled title="Has dice assigned"':''} aria-label="Remove">✕</button></div>`).join('') || '<p class="muted">No players yet.</p>'}</div>
+    <div class="add-row" style="margin-top:12px"><input type="text" id="mNew" maxlength="24" placeholder="New player name"><button class="btn" id="mAdd">Add</button></div>
+    <div class="modal-actions"><button class="btn primary" data-close>Done</button></div>`);
+  const after = () => { save(); renderPullControls(); refreshSelects(); renderTab(); };
+  $('#mPlayers').addEventListener('change', e => {
+    const id=e.target.dataset.id; if(!id) return; const v=e.target.value.trim().slice(0,24);
+    const p=state.players.find(x=>x.id===id); if (v) p.name=v; else e.target.value=p.name; after();
+  });
+  $('#mPlayers').addEventListener('click', e => { const b=e.target.closest('[data-rm]'); if(!b) return; state.players=state.players.filter(p=>p.id!==b.dataset.rm); after(); playersModal(); });
+  $('#mAdd').onclick = () => { if (addPlayer($('#mNew').value)){ after(); playersModal(); setTimeout(()=>$('#mNew') && $('#mNew').focus(),50); } };
+  $('#mNew').addEventListener('keydown', e => { if(e.key==='Enter') $('#mAdd').click(); });
+}
+$('#btnPlayers').onclick = playersModal;
+$('#btnNew').onclick = () => confirmModal('Start a new game?', 'This clears the current jar, log and stats. Your dice mix and player names are kept for the new setup.', 'Start fresh', () => {
+  state.phase='setup'; state.initial=[]; state.jar=[]; state.pulls=[]; state.celebrated=false; state.celebratedDone=false; save(); showSetup(); window.scrollTo({top:0,behavior:'smooth'});
+});
+
+/* ---- celebration ---- */
+/* the jar only counts as truly empty when no haunted die or restless ghost is still waiting to climb back in */
+const comingBack = () => allRolled().some(x => !x.d.done && returnsToJar(x.d)) || (lastPull() && lastPull().dice.some(d => d.result==null));
+const trulyEmpty = () => state.initial.length && !state.jar.length && !comingBack();
+function checkEmpty(){
+  const lp=lastPull();
+  if (trulyEmpty() && lp && pullDone(lp) && !rolling.size && !state.celebrated){
+    state.celebrated=true; save(); confetti(); toast('🎉 The jar is empty! Well played.');
+  }
+  if (state.initial.length && !state.jar.length && lp && pullDone(lp) && !rolling.size && !state.celebratedDone && allRolled().every(x=>x.d.done)){
+    state.celebratedDone=true; save(); setTimeout(()=>{ confetti(); toast('🏆 Every die is done. Game complete!'); }, 600);
+  }
+}
+function confetti(){
+  const c=$('#confetti'), x=c.getContext('2d'), dpr=window.devicePixelRatio||1;
+  c.style.display='block'; c.width=innerWidth*dpr; c.height=innerHeight*dpr;
+  const cols=TYPES.map(t=>t.c);
+  const ps=Array.from({length:200}, () => ({x:Math.random()*c.width, y:-Math.random()*c.height*.6, vx:(Math.random()-.5)*4*dpr, vy:(2+Math.random()*4)*dpr,
+    s:(6+Math.random()*8)*dpr, a:Math.random()*6, va:(Math.random()-.5)*.3, c:cols[Math.random()*cols.length|0]}));
+  const t0=performance.now();
+  (function f(now){
+    const t=now-t0; x.clearRect(0,0,c.width,c.height); x.globalAlpha = t>2800 ? Math.max(0,1-(t-2800)/800) : 1;
+    for (const p of ps){ p.x+=p.vx; p.y+=p.vy; p.vy+=.06*dpr; p.a+=p.va; x.save(); x.translate(p.x,p.y); x.rotate(p.a); x.fillStyle=p.c; x.fillRect(-p.s/2,-p.s/3,p.s,p.s*.66); x.restore(); }
+    if (t<3600) requestAnimationFrame(f); else c.style.display='none';
+  })(t0);
+}
+
+/* ================= boot ================= */
+Jar.init($('#jarCanvas'));
+DoneJar.init($('#doneCanvas'));
+if (state.phase==='game' && state.initial.length) showGame(false); else showSetup();
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => {
+  Jar.draw();
+  document.querySelectorAll('canvas.ico, .jrow canvas').forEach(c => drawIcon(c, c.dataset.t));
+  if (!$('#game').hidden && !rolling.size) renderTray(false);
+});
+})();
+</script>
+</body>
+</html>
